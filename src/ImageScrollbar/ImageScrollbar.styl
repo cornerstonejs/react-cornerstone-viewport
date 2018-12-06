@@ -1,5 +1,3 @@
-@import "{ohif:design}/app"
-
 $imageSliderBorderRadius = 57px
 $imageSliderTrackColor = rgba(0,0,0,0)
 $imageSliderBorder = none
@@ -28,8 +26,8 @@ $imageSliderHeight = 39px
       position: absolute
       top: 0
 
-      vendorize(transform, rotate(90deg))
-      vendorize(transform-origin, top left)
+      transform: rotate(90deg)
+      transform-origin: top left
 
       -webkit-appearance: none
       background-color: $imageSliderTrackColor
@@ -78,7 +76,8 @@ $imageSliderHeight = 39px
       // --- Style the range thumb --- //
       &::-webkit-slider-thumb
         -webkit-appearance: none !important
-        theme('background-color', '$imageSliderColor')
+        //theme('background-color', '$imageSliderColor')
+        background-color: #163239
         border: $imageSliderBorder
         border-radius: $imageSliderBorderRadius
         cursor: -webkit-grab
@@ -87,11 +86,13 @@ $imageSliderHeight = 39px
         width: $imageSliderHeight
 
         &:active
-          theme('background-color', '$activeColor')
+          //theme('background-color', '$activeColor')
+          background-color: #20A5D6
           cursor: -webkit-grabbing
 
       &::-moz-range-thumb
-        theme('background-color', '$imageSliderColor')
+        //theme('background-color', '$imageSliderColor')
+        background-color: #163239
         border: $imageSliderBorder
         border-radius: $imageSliderBorderRadius
         cursor: -moz-grab
@@ -100,11 +101,13 @@ $imageSliderHeight = 39px
         z-index: 7
 
         &:active
-          theme('background-color', '$activeColor')
+          //theme('background-color', '$activeColor')
+          background-color: #20A5D6
           cursor: -moz-grabbing
 
       &::-ms-thumb
-        theme('background-color', '$imageSliderColor')
+        //theme('background-color', '$imageSliderColor')
+        background-color: #163239
         border: $imageSliderBorder
         border-radius: $imageSliderBorderRadius
         cursor: ns-resize
@@ -112,7 +115,8 @@ $imageSliderHeight = 39px
         width: $imageSliderHeight
 
         &:active
-          theme('background-color', '$activeColor')
+          //theme('background-color', '$activeColor')
+          background-color: #20A5D6
 
       &::-ms-tooltip
         display: none

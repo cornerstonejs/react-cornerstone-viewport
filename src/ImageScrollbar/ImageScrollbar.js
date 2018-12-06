@@ -1,7 +1,7 @@
 import { Component } from 'react';
 import React from 'react';
 import PropTypes from 'prop-types';
-//import './ImageScrollbar.styl';
+import './ImageScrollbar.styl';
 
 class ImageScrollbar extends Component {
   constructor(props) {
@@ -46,16 +46,16 @@ class ImageScrollbar extends Component {
 
     // Store the KeyCodes in an object for readability
     const keys = {
-        DOWN: 40,
-        UP: 38
+      DOWN: 40,
+      UP: 38
     };
 
     if (event.which === keys.DOWN) {
-        OHIF.commands.run('scrollDown');
-        event.preventDefault();
+      OHIF.commands.run('scrollDown');
+      event.preventDefault();
     } else if (event.which === keys.UP) {
-        OHIF.commands.run('scrollUp');
-        event.preventDefault();
+      OHIF.commands.run('scrollUp');
+      event.preventDefault();
     }
   }
 }

@@ -15,8 +15,18 @@ export default class App extends Component {
     }
 
     return (
-      <div>
-        <CornerstoneViewport viewportData={exampleData} />
+      <div className="container">
+        <div className="row">
+          <div className='col-xs-12 col-md-6'>
+            <h2>Cornerstone React Viewport Component</h2>
+            <h4>What is this?</h4>
+            <p>This is a re-usable component for displaying medical images with <a href="https://cornerstonejs.org/" target="_blank" rel="noopener noreferrer">Cornerstone.js.</a>
+            </p>
+          </div>
+          <div className='col-xs-12 col-lg-6'>
+            <CornerstoneViewport viewportData={exampleData} />
+          </div>
+        </div>
       </div>
     )
   }

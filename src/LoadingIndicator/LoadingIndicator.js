@@ -3,7 +3,6 @@ import React from 'react';
 import PropTypes from 'prop-types';
 
 //import { $ } from 'meteor/jquery';
-//import { OHIF } from 'meteor/ohif:core';
 
 //import './LoadingIndicator.styl';
 
@@ -74,37 +73,46 @@ const errorLoadingHandler = (element, imageId, error, source) => {
 };*/
 
 class LoadingIndicator extends Component {
-    constructor(props) {
-        super(props);
+  constructor(props) {
+    super(props);
+  }
+
+  render() {
+    // TODO[react]: Pass this in as a prop reactively
+    //const percentComplete = Session.get('CornerstoneLoadProgress' + this.viewportIndex);
+    let percComplete;
+    if (this.props.percentComplete && this.props.percentComplete !== 100) {
+      percComplete = `${this.props.percentComplete}%`;
     }
 
-    render() {
-        // TODO[react]: Pass this in as a prop reactively
-        //const percentComplete = Session.get('CornerstoneLoadProgress' + this.viewportIndex);
-        let percComplete;
-        if (this.props.percentComplete && this.props.percentComplete !== 100) {
-            percComplete = `${this.props.percentComplete}%`;
-        }
-
-        return (<React.Fragment>
-        <div className="imageViewerLoadingIndicator loadingIndicator">
+    return (
+      <React.Fragment>
+        {this.props.error ? (
+          <div className="imageViewerErrorLoadingIndicator loadingIndicator">
             <div className="indicatorContents">
-            <p>Loading... <i className="fa fa-spin fa-circle-o-notch fa-fw"></i> {percComplete}</p>
-           </div>
-        </div>
-        <div className="imageViewerErrorLoadingIndicator loadingIndicator">
-            <div className="indicatorContents">
-                    <h4>Error Loading Image</h4>
-                    <p className='description'>An error has occurred.</p>
-                    <p className='details'></p>
-                </div>
+              <h4>Error Loading Image</h4>
+              <p className="description">An error has occurred.</p>
+              <p className="details">{this.props.error}</p>
             </div>
-        </React.Fragment>);
-    }
+          </div>
+        ) : (
+          <div className="imageViewerLoadingIndicator loadingIndicator">
+            <div className="indicatorContents">
+              <p>
+                Loading... <i className="fa fa-spin fa-circle-o-notch fa-fw" />{' '}
+                {percComplete}
+              </p>
+            </div>
+          </div>
+        )}
+      </React.Fragment>
+    );
+  }
 }
 
 LoadingIndicator.propTypes = {
-    percentComplete: PropTypes.number
+  percentComplete: PropTypes.number,
+  error: PropTypes.string
 };
 
 export default LoadingIndicator;

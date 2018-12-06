@@ -1,12 +1,11 @@
-@import "{ohif:design}/app"
-
 $viewportTagPadding = 20px
 
 .imageViewerViewport.empty ~ .ViewportOverlay
   display: none
 
 .ViewportOverlay
-  theme('color', '$textSecondaryColor')
+  //theme('color', '$textSecondaryColor')
+  color: #9CCEF9
 
   .overlay-element
     position: absolute
@@ -43,9 +42,12 @@ $viewportTagPadding = 20px
       right: "calc(%s + 19px)" % $viewportTagPadding
 
   svg
-    theme('color', '$defaultColor')
-    theme('fill', '$defaultColor')
-    theme('stroke', '$defaultColor')
+    color: #9CCEF9
+    fill: #9CCEF9
+    stroke: #9CCEF9
+    //theme('color', '$defaultColor')
+    //theme('fill', '$defaultColor')
+    //theme('stroke', '$defaultColor')
     background-color: transparent
     margin: 2px
     width: 18px
