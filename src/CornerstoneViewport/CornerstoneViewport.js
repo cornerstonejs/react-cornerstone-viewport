@@ -111,8 +111,15 @@ class CornerstoneViewport extends Component {
       this.state.isLoading ||
       this.state.numImagesLoaded / this.state.stack.imageIds.length < 0.1;
 
+    let className = 'CornerstoneViewport';
+    if (
+      this.props.activeViewportIndex === this.props.viewportData.viewportIndex
+    ) {
+      className += ' active';
+    }
+
     return (
-      <div className="CornerstoneViewport">
+      <div className={className}>
         {/*<ToolContextMenu
             toolContextMenuData={
                     this.state.toolContextMenuData
@@ -218,6 +225,63 @@ class CornerstoneViewport extends Component {
 
   componentDidMount() {
     const element = this.element;
+    this.eventHandlerData = [
+      {
+        eventTarget: element,
+        eventType: this.cornerstone.EVENTS.IMAGE_RENDERED,
+        handler: this.onImageRendered
+      },
+      {
+        eventTarget: element,
+        eventType: this.cornerstone.EVENTS.NEW_IMAGE,
+        handler: this.onNewImage
+      },
+      {
+        eventTarget: element,
+        eventType: this.cornerstone.EVENTS.STACK_SCROLL,
+        handler: this.onStackScroll
+      },
+      {
+        eventTarget: element,
+        eventType: this.cornerstone.EVENTS.MEASUREMENT_ADDED,
+        handler: this.onMeasurementAddedOrRemoved
+      },
+      {
+        eventTarget: element,
+        eventType: this.cornerstone.EVENTS.MEASUREMENT_REMOVED,
+        handler: this.onMeasurementAddedOrRemoved
+      },
+      {
+        eventTarget: element,
+        eventType: this.cornerstone.EVENTS.MOUSE_CLICK,
+        handler: this.onMouseClick
+      },
+      {
+        eventTarget: element,
+        eventType: this.cornerstone.EVENTS.TOUCH_PRESS,
+        handler: this.onTouchPress
+      },
+      {
+        eventTarget: element,
+        eventType: this.cornerstone.EVENTS.TOUCH_START,
+        handler: this.onTouchStart
+      },
+      {
+        eventTarget: element,
+        eventType: this.cornerstone.EVENTS.DOUBLE_CLICK,
+        handler: this.onDoubleClick
+      },
+      {
+        eventTarget: element,
+        eventType: this.cornerstone.EVENTS.DOUBLE_TAP,
+        handler: this.onDoubleClick
+      },
+      {
+        eventTarget: window,
+        eventType: EVENT_RESIZE,
+        handler: this.onWindowResize
+      }
+    ];
 
     // Enable the DOM Element for use with Cornerstone
     this.cornerstone.enable(element, this.props.cornerstoneOptions);
@@ -367,47 +431,11 @@ class CornerstoneViewport extends Component {
           isTouchActive: true
         });
 
-        element.addEventListener(
-          this.cornerstone.EVENTS.IMAGE_RENDERED,
-          this.onImageRendered
-        );
+        this.eventHandlerData.forEach(data => {
+          const { eventTarget, eventType, handler } = data;
 
-        element.addEventListener(
-          this.cornerstone.EVENTS.NEW_IMAGE,
-          this.onNewImage
-        );
-
-        element.addEventListener(
-          this.cornerstoneTools.EVENTS.STACK_SCROLL,
-          this.onStackScroll
-        );
-
-        element.addEventListener(
-          this.cornerstoneTools.EVENTS.MEASUREMENT_ADDED,
-          this.onMeasurementAddedOrRemoved
-        );
-
-        element.addEventListener(
-          this.cornerstoneTools.EVENTS.MEASUREMENT_REMOVED,
-          this.onMeasurementAddedOrRemoved
-        );
-
-        element.addEventListener(
-          this.cornerstoneTools.EVENTS.MOUSE_CLICK,
-          this.onMouseClick
-        );
-
-        element.addEventListener(
-          this.cornerstoneTools.EVENTS.TOUCH_PRESS,
-          this.onTouchPress
-        );
-
-        element.addEventListener(
-          this.cornerstoneTools.EVENTS.TOUCH_START,
-          this.onTouchStart
-        );
-
-        window.addEventListener(EVENT_RESIZE, this.onWindowResize);
+          eventTarget.addEventListener(eventType, handler);
+        });
 
         this.setState({
           viewportHeight: `${this.element.clientHeight - 20}px`
@@ -423,49 +451,18 @@ class CornerstoneViewport extends Component {
     );
   }
 
+  onDoubleClick() {
+    console.log('onDoubleClick');
+  }
+
   componentWillUnmount() {
+    this.eventHandlerData.forEach(data => {
+      const { eventTarget, eventType, handler } = data;
+
+      eventTarget.removeEventListener(eventType, handler);
+    });
+
     const element = this.element;
-    element.removeEventListener(
-      this.cornerstone.EVENTS.IMAGE_RENDERED,
-      this.onImageRendered
-    );
-
-    element.removeEventListener(
-      this.cornerstone.EVENTS.NEW_IMAGE,
-      this.onNewImage
-    );
-
-    element.removeEventListener(
-      this.cornerstoneTools.EVENTS.STACK_SCROLL,
-      this.onStackScroll
-    );
-
-    element.removeEventListener(
-      this.cornerstoneTools.EVENTS.MEASUREMENT_ADDED,
-      this.onMeasurementAddedOrRemoved
-    );
-
-    element.removeEventListener(
-      this.cornerstoneTools.EVENTS.MEASUREMENT_REMOVED,
-      this.onMeasurementAddedOrRemoved
-    );
-
-    element.removeEventListener(
-      this.cornerstoneTools.EVENTS.MOUSE_CLICK,
-      this.onMouseClick
-    );
-
-    element.removeEventListener(
-      this.cornerstoneTools.EVENTS.TOUCH_PRESS,
-      this.onTouchPress
-    );
-
-    element.removeEventListener(
-      this.cornerstoneTools.EVENTS.TOUCH_START,
-      this.onTouchStart
-    );
-
-    window.removeEventListener(EVENT_RESIZE, this.onWindowResize);
 
     // Remove all tools for the destroyed element
     // TODO[cornerstoneTools]: Make this happen internally
@@ -689,18 +686,12 @@ class CornerstoneViewport extends Component {
   }
 
   setViewportActive() {
-    //const { viewportIndex } = this.props.viewportData;
-    // Get the current active viewport index, if this viewport has the same index,
-    // add the CSS 'active' class to highlight this viewport.
-    /*const activeViewportIndex = window.store.getState().viewports.activeViewport;
-    if (viewportIndex !== activeViewportIndex) {
-        // TODO[react]: Call a passed-in callback instead of dispatching events to
-        // the store directly. Components should not know about the store
-        /*window.store.dispatch({
-            type: 'SET_VIEWPORT_ACTIVE',
-            viewportIndex,
-        });
-    }*/
+    const { viewportIndex } = this.props.viewportData;
+
+    const activeViewportIndex = this.props.activeViewportIndex;
+    if (viewportIndex !== activeViewportIndex && this.props.setViewportActive) {
+      this.props.setViewportActive(viewportIndex);
+    }
   }
 
   onMouseClick(event) {
@@ -769,7 +760,9 @@ CornerstoneViewport.propTypes = {
   measurementsChanged: PropTypes.func,
   activeTool: PropTypes.string,
   viewportData: PropTypes.object.isRequired,
-  cornerstoneOptions: PropTypes.object
+  activeViewportIndex: PropTypes.number,
+  cornerstoneOptions: PropTypes.object,
+  setViewportActive: PropTypes.func
 };
 
 export default CornerstoneViewport;
