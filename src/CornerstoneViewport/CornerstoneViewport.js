@@ -232,9 +232,9 @@ class CornerstoneViewport extends Component {
     // Handle the case where the imageId isn't loaded correctly and the
     // imagePromise returns undefined
     // To test, uncomment the next line
-    let imageId = 'AfileThatDoesntWork'; // For testing only!
+    //let imageId = 'AfileThatDoesntWork'; // For testing only!
 
-    //const { imageId } = this.state;
+    const { imageId } = this.state;
     let imagePromise;
     try {
       imagePromise = cornerstone.loadAndCacheImage(imageId);
