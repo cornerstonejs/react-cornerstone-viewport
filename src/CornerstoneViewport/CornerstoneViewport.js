@@ -238,42 +238,47 @@ class CornerstoneViewport extends Component {
       },
       {
         eventTarget: element,
-        eventType: this.cornerstone.EVENTS.STACK_SCROLL,
+        eventType: this.cornerstoneTools.EVENTS.STACK_SCROLL,
         handler: this.onStackScroll
       },
       {
         eventTarget: element,
-        eventType: this.cornerstone.EVENTS.MEASUREMENT_ADDED,
+        eventType: this.cornerstoneTools.EVENTS.MEASUREMENT_ADDED,
         handler: this.onMeasurementAddedOrRemoved
       },
       {
         eventTarget: element,
-        eventType: this.cornerstone.EVENTS.MEASUREMENT_REMOVED,
+        eventType: this.cornerstoneTools.EVENTS.MEASUREMENT_REMOVED,
         handler: this.onMeasurementAddedOrRemoved
       },
       {
         eventTarget: element,
-        eventType: this.cornerstone.EVENTS.MOUSE_CLICK,
+        eventType: this.cornerstoneTools.EVENTS.MOUSE_CLICK,
         handler: this.onMouseClick
       },
       {
         eventTarget: element,
-        eventType: this.cornerstone.EVENTS.TOUCH_PRESS,
+        eventType: this.cornerstoneTools.EVENTS.MOUSE_DOWN,
+        handler: this.onMouseClick
+      },
+      {
+        eventTarget: element,
+        eventType: this.cornerstoneTools.EVENTS.TOUCH_PRESS,
         handler: this.onTouchPress
       },
       {
         eventTarget: element,
-        eventType: this.cornerstone.EVENTS.TOUCH_START,
+        eventType: this.cornerstoneTools.EVENTS.TOUCH_START,
         handler: this.onTouchStart
       },
       {
         eventTarget: element,
-        eventType: this.cornerstone.EVENTS.DOUBLE_CLICK,
+        eventType: this.cornerstoneTools.EVENTS.DOUBLE_CLICK,
         handler: this.onDoubleClick
       },
       {
         eventTarget: element,
-        eventType: this.cornerstone.EVENTS.DOUBLE_TAP,
+        eventType: this.cornerstoneTools.EVENTS.DOUBLE_TAP,
         handler: this.onDoubleClick
       },
       {
