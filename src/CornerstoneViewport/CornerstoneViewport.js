@@ -217,7 +217,6 @@ class CornerstoneViewport extends Component {
   }
 
   componentDidMount() {
-    console.log('componentDidMount');
     const element = this.element;
 
     // Enable the DOM Element for use with Cornerstone
@@ -373,7 +372,10 @@ class CornerstoneViewport extends Component {
           this.onImageRendered
         );
 
-        element.addEventListener(cornerstone.EVENTS.NEW_IMAGE, this.onNewImage);
+        element.addEventListener(
+          this.cornerstone.EVENTS.NEW_IMAGE,
+          this.onNewImage
+        );
 
         element.addEventListener(
           this.cornerstoneTools.EVENTS.STACK_SCROLL,
@@ -687,8 +689,7 @@ class CornerstoneViewport extends Component {
   }
 
   setViewportActive() {
-    const { viewportIndex } = this.props.viewportData;
-
+    //const { viewportIndex } = this.props.viewportData;
     // Get the current active viewport index, if this viewport has the same index,
     // add the CSS 'active' class to highlight this viewport.
     /*const activeViewportIndex = window.store.getState().viewports.activeViewport;
