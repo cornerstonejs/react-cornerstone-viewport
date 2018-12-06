@@ -1,7 +1,7 @@
 import dicomParser from 'dicom-parser';
 import cornerstone from 'cornerstone-core';
 import cornerstoneMath from 'cornerstone-math';
-import cornerstoneWADOImageLoader from 'cornerstone-wado-image-loader';
+//import cornerstoneWADOImageLoader from 'cornerstone-wado-image-loader';
 import cornerstoneTools from 'cornerstone-tools';
 import Hammer from 'hammerjs';
 
@@ -9,28 +9,10 @@ cornerstoneTools.external.cornerstone = cornerstone;
 cornerstoneTools.external.Hammer = Hammer;
 cornerstoneTools.external.cornerstoneMath = cornerstoneMath;
 
-cornerstoneWADOImageLoader.external.cornerstone = cornerstone;
-cornerstoneWADOImageLoader.external.dicomParser = dicomParser;
-
-const config = {
-  maxWebWorkers: navigator.hardwareConcurrency || 1,
-  startWebWorkersOnDemand: false,
-  webWorkerPath: 'cornerstoneWADOImageLoaderWebWorker.min.js',
-  webWorkerTaskPaths: [],
-  taskConfiguration: {
-    decodeTask: {
-      loadCodecsOnStartup: true,
-      initializeCodecsOnStartup: false,
-      codecsPath: 'cornerstoneWADOImageLoaderCodecs.min.js',
-      usePDFJS: false,
-      strict: false
-    }
-  }
-};
+//cornerstoneWADOImageLoader.external.cornerstone = cornerstone;
+//cornerstoneWADOImageLoader.external.dicomParser = dicomParser;
 
 cornerstoneTools.init();
-
-cornerstoneWADOImageLoader.webWorkerManager.initialize(config);
 
 // Set the tool font and font size
 // context.font = "[style] [variant] [weight] [size]/[line height] [font family]";
@@ -49,7 +31,7 @@ cornerstoneTools.toolColors.setActiveColor('rgb(0, 255, 0)');
 
 cornerstoneTools.store.state.touchProximity = 40;
 
-function metaDataProvider(type, imageId) {
+/*function metaDataProvider(type, imageId) {
   const metaData = cornerstoneWADOImageLoader.wadors.metaDataManager.get(
     imageId
   );
@@ -71,4 +53,4 @@ function metaDataProvider(type, imageId) {
   }
 }
 
-cornerstone.metaData.addProvider(metaDataProvider);
+cornerstone.metaData.addProvider(metaDataProvider);*/

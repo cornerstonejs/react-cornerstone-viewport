@@ -1,6 +1,8 @@
-import React, { Component } from 'react'
-
-import CornerstoneViewport from 'react-cornerstone-viewport'
+import React, { Component } from 'react';
+import './initCornerstone';
+import CornerstoneViewport from 'react-cornerstone-viewport';
+import cornerstone from 'cornerstone-core';
+import cornerstoneTools from 'cornerstone-tools';
 
 export default class App extends Component {
   render () {
@@ -24,7 +26,11 @@ export default class App extends Component {
             </p>
           </div>
           <div className='col-xs-12 col-lg-6'>
-            <CornerstoneViewport viewportData={exampleData} />
+            <CornerstoneViewport
+              viewportData={exampleData}
+              cornerstone={cornerstone} 
+              cornerstoneTools={cornerstoneTools}
+              />
           </div>
         </div>
       </div>

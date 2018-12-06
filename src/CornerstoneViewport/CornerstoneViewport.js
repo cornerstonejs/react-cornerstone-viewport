@@ -2,10 +2,6 @@ import { Component } from 'react';
 import React from 'react';
 import PropTypes from 'prop-types';
 import debounce from 'lodash.debounce';
-
-// TODO: Should we pass these in as dependencies?
-import cornerstone from 'cornerstone-core';
-import cornerstoneTools from 'cornerstone-tools';
 import ImageScrollbar from '../ImageScrollbar/ImageScrollbar.js';
 import ViewportOverlay from '../ViewportOverlay/ViewportOverlay.js';
 import LoadingIndicator from '../LoadingIndicator/LoadingIndicator.js';
@@ -18,7 +14,7 @@ const loadIndicatorDelay = 45;
     loadHandlerManager,
 } = cornerstoneTools;*/
 
-function setToolsPassive(tools) {
+function setToolsPassive(cornerstoneTools, tools) {
   tools.forEach(tool => {
     cornerstoneTools.setToolPassive(tool);
   });
@@ -26,7 +22,7 @@ function setToolsPassive(tools) {
 
 const logger = console;
 
-function initializeTools(tools) {
+function initializeTools(cornerstoneTools, tools) {
   Array.from(tools).forEach(tool => {
     const apiTool = cornerstoneTools[`${tool.name}Tool`];
     if (apiTool) {
@@ -37,8 +33,6 @@ function initializeTools(tools) {
   });
 }
 
-const scrollToIndex = cornerstoneTools.import('util/scrollToIndex');
-
 class CornerstoneViewport extends Component {
   static defaultProps = {
     activeTool: 'Wwwc',
@@ -47,6 +41,10 @@ class CornerstoneViewport extends Component {
 
   constructor(props) {
     super(props);
+
+    this.cornerstone = props.cornerstone;
+    this.cornerstoneTools = props.cornerstoneTools;
+    this.scrollToIndex = this.cornerstoneTools.import('util/scrollToIndex');
 
     // TODO: Allow viewport as a prop
     const { stack } = props.viewportData;
@@ -62,7 +60,7 @@ class CornerstoneViewport extends Component {
     };
 
     this.displayScrollbar = stack.imageIds.length > 1;
-    this.state.viewport = cornerstone.getDefaultViewport(null, undefined);
+    this.state.viewport = this.cornerstone.getDefaultViewport(null, undefined);
 
     this.onImageRendered = this.onImageRendered.bind(this);
     this.onNewImage = this.onNewImage.bind(this);
@@ -91,13 +89,13 @@ class CornerstoneViewport extends Component {
 
     this.debouncedResize = debounce(() => {
       try {
-        cornerstone.getEnabledElement(this.element);
+        this.cornerstone.getEnabledElement(this.element);
       } catch (error) {
         console.error(error);
         return;
       }
 
-      cornerstone.resize(this.element, true);
+      this.cornerstone.resize(this.element, true);
 
       this.setState({
         viewportHeight: `${this.element.clientHeight - 20}px`
@@ -203,7 +201,7 @@ class CornerstoneViewport extends Component {
   }
 
   onImageRendered() {
-    const viewport = cornerstone.getViewport(this.element);
+    const viewport = this.cornerstone.getViewport(this.element);
 
     this.setState({
       viewport
@@ -211,7 +209,7 @@ class CornerstoneViewport extends Component {
   }
 
   onNewImage() {
-    const image = cornerstone.getImage(this.element);
+    const image = this.cornerstone.getImage(this.element);
 
     this.setState({
       imageId: image.imageId
@@ -219,13 +217,14 @@ class CornerstoneViewport extends Component {
   }
 
   componentDidMount() {
+    console.log('componentDidMount');
     const element = this.element;
 
     // Enable the DOM Element for use with Cornerstone
-    cornerstone.enable(element, this.props.cornerstoneOptions);
+    this.cornerstone.enable(element, this.props.cornerstoneOptions);
 
-    cornerstone.events.addEventListener(
-      cornerstone.EVENTS.IMAGE_LOADED,
+    this.cornerstone.events.addEventListener(
+      this.cornerstone.EVENTS.IMAGE_LOADED,
       this.onImageLoaded
     );
 
@@ -237,7 +236,7 @@ class CornerstoneViewport extends Component {
     const { imageId } = this.state;
     let imagePromise;
     try {
-      imagePromise = cornerstone.loadAndCacheImage(imageId);
+      imagePromise = this.cornerstone.loadAndCacheImage(imageId);
     } catch (error) {
       logger.error(error);
       if (!imagePromise) {
@@ -250,7 +249,7 @@ class CornerstoneViewport extends Component {
     imagePromise.then(
       image => {
         try {
-          cornerstone.getEnabledElement(element);
+          this.cornerstone.getEnabledElement(element);
         } catch (error) {
           // Handle cases where the user ends the session before the image is displayed.
           console.error(error);
@@ -258,32 +257,35 @@ class CornerstoneViewport extends Component {
         }
 
         // Set Soft Tissue preset for all images by default
-        const viewport = cornerstone.getDefaultViewportForImage(element, image);
+        const viewport = this.cornerstone.getDefaultViewportForImage(
+          element,
+          image
+        );
         viewport.voi = {
           windowWidth: 400,
           windowCenter: 40
         };
 
         // Display the first image
-        cornerstone.displayImage(element, image, viewport);
+        this.cornerstone.displayImage(element, image, viewport);
 
         // Clear any previous tool state
-        cornerstoneTools.clearToolState(this.element, 'stack');
+        this.cornerstoneTools.clearToolState(this.element, 'stack');
 
         // Disable stack prefetch in case there are still queued requests
-        cornerstoneTools.stackPrefetch.disable(this.element);
+        this.cornerstoneTools.stackPrefetch.disable(this.element);
 
         /* Add the stack tool state to the enabled element, and
            add stack state managers for the stack tool, CINE tool, and reference lines
         */
         const stack = this.state.stack;
-        cornerstoneTools.addStackStateManager(element, [
+        this.cornerstoneTools.addStackStateManager(element, [
           'stack',
           'playClip',
           'referenceLines'
         ]);
-        cornerstoneTools.addToolState(element, 'stack', stack);
-        cornerstoneTools.stackPrefetch.enable(this.element);
+        this.cornerstoneTools.addToolState(element, 'stack', stack);
+        this.cornerstoneTools.stackPrefetch.enable(this.element);
 
         const tools = [
           {
@@ -326,81 +328,80 @@ class CornerstoneViewport extends Component {
           }
         ];
 
-        initializeTools(tools);
+        initializeTools(this.cornerstoneTools, tools);
 
         this.setActiveTool(this.props.activeTool);
 
         /* For touch devices, by default we activate:
-      - Pinch to zoom
-      - Two-finger Pan
-      - Three (or more) finger Stack Scroll
-      */
-        cornerstoneTools.setToolActive('PanMultiTouch', {
+          - Pinch to zoom
+          - Two-finger Pan
+          - Three (or more) finger Stack Scroll
+        */
+        this.cornerstoneTools.setToolActive('PanMultiTouch', {
           mouseButtonMask: 0,
           isTouchActive: true
         });
-        cornerstoneTools.setToolActive('ZoomTouchPinch', {
-          mouseButtonMask: 0,
-          isTouchActive: true
-        });
-
-        cornerstoneTools.setToolActive('StackScrollMultiTouch', {
+        this.cornerstoneTools.setToolActive('ZoomTouchPinch', {
           mouseButtonMask: 0,
           isTouchActive: true
         });
 
-        cornerstoneTools.stackPrefetch.setConfiguration({
+        this.cornerstoneTools.setToolActive('StackScrollMultiTouch', {
+          mouseButtonMask: 0,
+          isTouchActive: true
+        });
+
+        this.cornerstoneTools.stackPrefetch.setConfiguration({
           maxImagesToPrefetch: Infinity,
           preserveExistingPool: false,
           maxSimultaneousRequests: 6
         });
 
         /* For mouse devices, by default we turn on:
-      - Stack scrolling by mouse wheel
-      - Stack scrolling by keyboard up / down arrow keys
-      - Pan with middle click
-      - Zoom with right click
-      */
-
-        cornerstoneTools.setToolActive('StackScrollMouseWheel', {
+        - Stack scrolling by mouse wheel
+        - Stack scrolling by keyboard up / down arrow keys
+        - Pan with middle click
+        - Zoom with right click
+        */
+        this.cornerstoneTools.setToolActive('StackScrollMouseWheel', {
           mouseButtonMask: 0,
           isTouchActive: true
         });
 
         element.addEventListener(
-          cornerstone.EVENTS.IMAGE_RENDERED,
+          this.cornerstone.EVENTS.IMAGE_RENDERED,
           this.onImageRendered
         );
 
         element.addEventListener(cornerstone.EVENTS.NEW_IMAGE, this.onNewImage);
 
         element.addEventListener(
-          cornerstoneTools.EVENTS.STACK_SCROLL,
+          this.cornerstoneTools.EVENTS.STACK_SCROLL,
           this.onStackScroll
         );
 
         element.addEventListener(
-          cornerstoneTools.EVENTS.MEASUREMENT_ADDED,
+          this.cornerstoneTools.EVENTS.MEASUREMENT_ADDED,
           this.onMeasurementAddedOrRemoved
         );
 
         element.addEventListener(
-          cornerstoneTools.EVENTS.MEASUREMENT_REMOVED,
+          this.cornerstoneTools.EVENTS.MEASUREMENT_REMOVED,
           this.onMeasurementAddedOrRemoved
         );
 
         element.addEventListener(
-          cornerstoneTools.EVENTS.MOUSE_CLICK,
+          this.cornerstoneTools.EVENTS.MOUSE_CLICK,
           this.onMouseClick
         );
 
         element.addEventListener(
-          cornerstoneTools.EVENTS.TOUCH_PRESS,
+          this.cornerstoneTools.EVENTS.TOUCH_PRESS,
           this.onTouchPress
         );
 
         element.addEventListener(
-          cornerstoneTools.EVENTS.TOUCH_START,
+          this.cornerstoneTools.EVENTS.TOUCH_START,
           this.onTouchStart
         );
 
@@ -423,39 +424,42 @@ class CornerstoneViewport extends Component {
   componentWillUnmount() {
     const element = this.element;
     element.removeEventListener(
-      cornerstone.EVENTS.IMAGE_RENDERED,
+      this.cornerstone.EVENTS.IMAGE_RENDERED,
       this.onImageRendered
     );
 
-    element.removeEventListener(cornerstone.EVENTS.NEW_IMAGE, this.onNewImage);
+    element.removeEventListener(
+      this.cornerstone.EVENTS.NEW_IMAGE,
+      this.onNewImage
+    );
 
     element.removeEventListener(
-      cornerstoneTools.EVENTS.STACK_SCROLL,
+      this.cornerstoneTools.EVENTS.STACK_SCROLL,
       this.onStackScroll
     );
 
     element.removeEventListener(
-      cornerstoneTools.EVENTS.MEASUREMENT_ADDED,
+      this.cornerstoneTools.EVENTS.MEASUREMENT_ADDED,
       this.onMeasurementAddedOrRemoved
     );
 
     element.removeEventListener(
-      cornerstoneTools.EVENTS.MEASUREMENT_REMOVED,
+      this.cornerstoneTools.EVENTS.MEASUREMENT_REMOVED,
       this.onMeasurementAddedOrRemoved
     );
 
     element.removeEventListener(
-      cornerstoneTools.EVENTS.MOUSE_CLICK,
+      this.cornerstoneTools.EVENTS.MOUSE_CLICK,
       this.onMouseClick
     );
 
     element.removeEventListener(
-      cornerstoneTools.EVENTS.TOUCH_PRESS,
+      this.cornerstoneTools.EVENTS.TOUCH_PRESS,
       this.onTouchPress
     );
 
     element.removeEventListener(
-      cornerstoneTools.EVENTS.TOUCH_START,
+      this.cornerstoneTools.EVENTS.TOUCH_START,
       this.onTouchStart
     );
 
@@ -467,27 +471,27 @@ class CornerstoneViewport extends Component {
 
     // Clear the stack prefetch data
     // TODO[cornerstoneTools]: Make this happen internally
-    cornerstoneTools.clearToolState(element, 'stackPrefetch');
+    this.cornerstoneTools.clearToolState(element, 'stackPrefetch');
 
     // Disable the viewport element with Cornerstone
     // This also triggers the removal of the element from all available
     // synchronizers, such as the one used for reference lines.
-    cornerstone.disable(element);
+    this.cornerstone.disable(element);
 
     // Try to stop any currently playing clips
     // Otherwise the interval will continuously throw errors
     // TODO[cornerstoneTools]: Make this happen internally
     try {
-      const enabledElement = cornerstone.getEnabledElement(element);
+      const enabledElement = this.cornerstone.getEnabledElement(element);
       if (enabledElement) {
-        cornerstoneTools.stopClip(element);
+        this.cornerstoneTools.stopClip(element);
       }
     } catch (error) {
       logger.warn(error);
     }
 
-    cornerstone.events.removeEventListener(
-      cornerstone.EVENTS.IMAGE_LOADED,
+    this.cornerstone.events.removeEventListener(
+      this.cornerstone.EVENTS.IMAGE_LOADED,
       this.onImageLoaded
     );
   }
@@ -514,7 +518,10 @@ class CornerstoneViewport extends Component {
         });*/
 
       const stack = this.props.stack;
-      const stackData = cornerstoneTools.getToolState(this.element, 'stack');
+      const stackData = this.cornerstoneTools.getToolState(
+        this.element,
+        'stack'
+      );
       let currentStack = stackData && stackData.data[0];
 
       if (!currentStack) {
@@ -523,8 +530,8 @@ class CornerstoneViewport extends Component {
           imageIds: stack.imageIds
         };
 
-        cornerstoneTools.addStackStateManager(this.element, ['stack']);
-        cornerstoneTools.addToolState(this.element, 'stack', currentStack);
+        this.cornerstoneTools.addStackStateManager(this.element, ['stack']);
+        this.cornerstoneTools.addToolState(this.element, 'stack', currentStack);
       } else {
         // TODO: we should make something like setToolState by an ID
         currentStack.currentImageIdIndex = currentImageIdIndex;
@@ -540,17 +547,17 @@ class CornerstoneViewport extends Component {
         imageId
       });
 
-      cornerstoneTools.stackPrefetch.disable(this.element);
-      cornerstone.loadAndCacheImage(imageId).then(image => {
+      this.cornerstoneTools.stackPrefetch.disable(this.element);
+      this.cornerstone.loadAndCacheImage(imageId).then(image => {
         try {
-          cornerstone.getEnabledElement(this.element);
+          this.cornerstone.getEnabledElement(this.element);
         } catch (error) {
           // Handle cases where the user ends the session before the image is displayed.
           console.error(error);
           return;
         }
 
-        const viewport = cornerstone.getDefaultViewportForImage(
+        const viewport = this.cornerstone.getDefaultViewportForImage(
           this.element,
           image
         );
@@ -561,9 +568,9 @@ class CornerstoneViewport extends Component {
           y: image.height
         };
 
-        cornerstone.displayImage(this.element, image, viewport);
+        this.cornerstone.displayImage(this.element, image, viewport);
 
-        cornerstoneTools.stackPrefetch.enable(this.element);
+        this.cornerstoneTools.stackPrefetch.enable(this.element);
       });
     }
 
@@ -571,7 +578,7 @@ class CornerstoneViewport extends Component {
       this.setActiveTool(this.props.activeTool);
 
       // TODO: Why do we need to do this in v3?
-      cornerstoneTools.setToolActive('StackScrollMouseWheel', {
+      this.cornerstoneTools.setToolActive('StackScrollMouseWheel', {
         mouseButtonMask: 0,
         isTouchActive: true
       });
@@ -584,7 +591,7 @@ class CornerstoneViewport extends Component {
   setActiveTool = activeTool => {
     const leftMouseTools = ['Bidirectional', 'Wwwc', 'StackScroll'];
 
-    setToolsPassive(leftMouseTools);
+    setToolsPassive(this.cornerstoneTools, leftMouseTools);
 
     // pan is the default tool for middle mouse button
     const isPanToolActive = activeTool === 'Pan';
@@ -592,7 +599,7 @@ class CornerstoneViewport extends Component {
       mouseButtonMask: isPanToolActive ? [1, 4] : [4],
       isTouchActive: isPanToolActive
     };
-    cornerstoneTools.setToolActive('Pan', panOptions);
+    this.cornerstoneTools.setToolActive('Pan', panOptions);
 
     // zoom is the default tool for right mouse button
     const isZoomToolActive = activeTool === 'Zoom';
@@ -600,9 +607,9 @@ class CornerstoneViewport extends Component {
       mouseButtonMask: isZoomToolActive ? [1, 2] : [2],
       isTouchActive: isZoomToolActive
     };
-    cornerstoneTools.setToolActive('Zoom', zoomOptions);
+    this.cornerstoneTools.setToolActive('Zoom', zoomOptions);
 
-    cornerstoneTools.setToolActive(activeTool, {
+    this.cornerstoneTools.setToolActive(activeTool, {
       mouseButtonMask: 1,
       isTouchActive: true
     });
@@ -612,7 +619,7 @@ class CornerstoneViewport extends Component {
     this.setViewportActive();
 
     const element = event.currentTarget;
-    const stackData = cornerstoneTools.getToolState(element, 'stack');
+    const stackData = this.cornerstoneTools.getToolState(element, 'stack');
     const stack = stackData.data[0];
 
     this.hideExtraButtons();
@@ -740,7 +747,7 @@ class CornerstoneViewport extends Component {
     // user's ultrafast scrolling from firing requests too quickly.
     // clearTimeout(this.slideTimeout);
     // this.slideTimeout = setTimeout(() => {
-    scrollToIndex(this.element, value);
+    this.scrollToIndex(this.element, value);
     // }, this.slideTimeoutTime);
   }
 
