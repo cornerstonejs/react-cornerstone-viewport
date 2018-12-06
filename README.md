@@ -2,7 +2,7 @@
 
 > Cornerstone medical image viewport component for React
 
-[![NPM](https://img.shields.io/npm/v/react-cornerstone-viewport.svg)](https://www.npmjs.com/package/react-cornerstone-viewport) [![JavaScript Style Guide](https://img.shields.io/badge/code_style-standard-brightgreen.svg)](https://standardjs.com)
+[![NPM](https://img.shields.io/npm/v/react-cornerstone-viewport.svg)](https://www.npmjs.com/package/react-cornerstone-viewport)
 
 ## Install
 
@@ -15,12 +15,12 @@ npm install --save react-cornerstone-viewport
 ```jsx
 import React, { Component } from 'react'
 
-import MyComponent from 'react-cornerstone-viewport'
+import CornerstoneViewport from 'react-cornerstone-viewport'
 
 class Example extends Component {
   render () {
     return (
-      <MyComponent />
+      <CornerstoneViewport />
     )
   }
 }
