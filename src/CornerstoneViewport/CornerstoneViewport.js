@@ -37,28 +37,6 @@ function initializeTools(tools) {
   });
 }
 
-/*function getCornerstoneStack(viewportData) {
-    const {
-        displaySetInstanceUid,
-        studyInstanceUid,
-    } = viewportData;
-
-    // Create shortcut to displaySet
-    const study = OHIF.viewer.Studies.findBy({
-        studyInstanceUid,
-    });
-
-    const displaySet = study.displaySets.find((set) => {
-        return set.displaySetInstanceUid === displaySetInstanceUid;
-    });
-
-    // Get stack from Stack Manager
-    const stack = StackManager.findOrCreateStack(study, displaySet);
-    stack.currentImageIdIndex = 0;
-
-    return stack;
-}*/
-
 const scrollToIndex = cornerstoneTools.import('util/scrollToIndex');
 
 class CornerstoneViewport extends Component {
@@ -79,7 +57,8 @@ class CornerstoneViewport extends Component {
       viewportHeight: '100%',
       isLoading: false, // true,
       imageScrollbarValue: 0,
-      numImagesLoaded: 0
+      numImagesLoaded: 0,
+      error: null
     };
 
     this.displayScrollbar = stack.imageIds.length > 1;
@@ -143,7 +122,7 @@ class CornerstoneViewport extends Component {
             onClose={
                     this.onCloseToolContextMenu
                 }
-            />*/}{' '}
+            />*/}
         <div
           className="viewport-element"
           onContextMenu={this.onContextMenu}
@@ -151,19 +130,23 @@ class CornerstoneViewport extends Component {
             this.element = input;
           }}
         >
-          {isLoading ? <LoadingIndicator /> : ''}{' '}
+          {isLoading || this.state.error ? (
+            <LoadingIndicator error={this.state.error} />
+          ) : (
+            ''
+          )}
           <canvas className="cornerstone-canvas" />
           <ViewportOverlay
             stack={this.state.stack}
             viewport={this.state.viewport}
             imageId={this.state.imageId}
             numImagesLoaded={this.state.numImagesLoaded}
-          />{' '}
+          />
           <ViewportOrientationMarkers
             imageId={this.state.imageId}
             viewport={this.state.viewport}
-          />{' '}
-        </div>{' '}
+          />
+        </div>
         {this.displayScrollbar && (
           <ImageScrollbar
             onInputCallback={this.imageSliderOnInputCallback}
@@ -171,7 +154,7 @@ class CornerstoneViewport extends Component {
             value={this.state.imageScrollbarValue}
             height={this.state.viewportHeight}
           />
-        )}{' '}
+        )}
         {/* this.state.bidirectionalAddLabelShow && (
         <Labelling
           measurementData={this.bidirectional.measurementData}
@@ -180,7 +163,7 @@ class CornerstoneViewport extends Component {
           skipButton={this.bidirectional.skipButton}
           editDescription={this.bidirectional.editDescription}
         />
-      )*/}{' '}
+      )*/}
       </div>
     );
   }
@@ -249,183 +232,192 @@ class CornerstoneViewport extends Component {
     // Handle the case where the imageId isn't loaded correctly and the
     // imagePromise returns undefined
     // To test, uncomment the next line
-    // data.imageId = 'AfileThatDoesntWork'; // For testing only!
+    let imageId = 'AfileThatDoesntWork'; // For testing only!
 
-    const { imageId } = this.state;
+    //const { imageId } = this.state;
     let imagePromise;
     try {
       imagePromise = cornerstone.loadAndCacheImage(imageId);
     } catch (error) {
       logger.error(error);
       if (!imagePromise) {
-        //errorLoadingHandler(element, imageId, error);
+        this.setState({ error });
         return;
       }
     }
 
     // Load the first image in the stack
-    imagePromise.then(image => {
-      try {
-        cornerstone.getEnabledElement(element);
-      } catch (error) {
-        // Handle cases where the user ends the session before the image is displayed.
-        console.error(error);
-        return;
-      }
+    imagePromise.then(
+      image => {
+        try {
+          cornerstone.getEnabledElement(element);
+        } catch (error) {
+          // Handle cases where the user ends the session before the image is displayed.
+          console.error(error);
+          return;
+        }
 
-      // Set Soft Tissue preset for all images by default
-      const viewport = cornerstone.getDefaultViewportForImage(element, image);
-      viewport.voi = {
-        windowWidth: 400,
-        windowCenter: 40
-      };
+        // Set Soft Tissue preset for all images by default
+        const viewport = cornerstone.getDefaultViewportForImage(element, image);
+        viewport.voi = {
+          windowWidth: 400,
+          windowCenter: 40
+        };
 
-      // Display the first image
-      cornerstone.displayImage(element, image, viewport);
+        // Display the first image
+        cornerstone.displayImage(element, image, viewport);
 
-      // Clear any previous tool state
-      cornerstoneTools.clearToolState(this.element, 'stack');
+        // Clear any previous tool state
+        cornerstoneTools.clearToolState(this.element, 'stack');
 
-      // Disable stack prefetch in case there are still queued requests
-      cornerstoneTools.stackPrefetch.disable(this.element);
+        // Disable stack prefetch in case there are still queued requests
+        cornerstoneTools.stackPrefetch.disable(this.element);
 
-      /* Add the stack tool state to the enabled element, and
+        /* Add the stack tool state to the enabled element, and
            add stack state managers for the stack tool, CINE tool, and reference lines
         */
-      const stack = this.state.stack;
-      cornerstoneTools.addStackStateManager(element, [
-        'stack',
-        'playClip',
-        'referenceLines'
-      ]);
-      cornerstoneTools.addToolState(element, 'stack', stack);
-      cornerstoneTools.stackPrefetch.enable(this.element);
+        const stack = this.state.stack;
+        cornerstoneTools.addStackStateManager(element, [
+          'stack',
+          'playClip',
+          'referenceLines'
+        ]);
+        cornerstoneTools.addToolState(element, 'stack', stack);
+        cornerstoneTools.stackPrefetch.enable(this.element);
 
-      const tools = [
-        {
-          name: 'Bidirectional',
-          configuration: {
-            getMeasurementLocationCallback: this
-              .bidirectionalToolLabellingCallback,
-            shadow: true,
-            drawHandlesOnHover: true
+        const tools = [
+          {
+            name: 'Bidirectional',
+            configuration: {
+              getMeasurementLocationCallback: this
+                .bidirectionalToolLabellingCallback,
+              shadow: true,
+              drawHandlesOnHover: true
+            }
+          },
+          {
+            name: 'Wwwc'
+          },
+          {
+            name: 'Zoom',
+            configuration: {
+              minScale: 0.3,
+              maxScale: 25,
+              preventZoomOutsideImage: true
+            }
+          },
+          {
+            name: 'Pan'
+          },
+          {
+            name: 'StackScroll'
+          },
+          {
+            name: 'PanMultiTouch'
+          },
+          {
+            name: 'ZoomTouchPinch'
+          },
+          {
+            name: 'StackScrollMouseWheel'
+          },
+          {
+            name: 'StackScrollMultiTouch'
           }
-        },
-        {
-          name: 'Wwwc'
-        },
-        {
-          name: 'Zoom',
-          configuration: {
-            minScale: 0.3,
-            maxScale: 25,
-            preventZoomOutsideImage: true
-          }
-        },
-        {
-          name: 'Pan'
-        },
-        {
-          name: 'StackScroll'
-        },
-        {
-          name: 'PanMultiTouch'
-        },
-        {
-          name: 'ZoomTouchPinch'
-        },
-        {
-          name: 'StackScrollMouseWheel'
-        },
-        {
-          name: 'StackScrollMultiTouch'
-        }
-      ];
+        ];
 
-      initializeTools(tools);
+        initializeTools(tools);
 
-      this.setActiveTool(this.props.activeTool);
+        this.setActiveTool(this.props.activeTool);
 
-      /* For touch devices, by default we activate:
+        /* For touch devices, by default we activate:
       - Pinch to zoom
       - Two-finger Pan
       - Three (or more) finger Stack Scroll
       */
-      cornerstoneTools.setToolActive('PanMultiTouch', {
-        mouseButtonMask: 0,
-        isTouchActive: true
-      });
-      cornerstoneTools.setToolActive('ZoomTouchPinch', {
-        mouseButtonMask: 0,
-        isTouchActive: true
-      });
+        cornerstoneTools.setToolActive('PanMultiTouch', {
+          mouseButtonMask: 0,
+          isTouchActive: true
+        });
+        cornerstoneTools.setToolActive('ZoomTouchPinch', {
+          mouseButtonMask: 0,
+          isTouchActive: true
+        });
 
-      cornerstoneTools.setToolActive('StackScrollMultiTouch', {
-        mouseButtonMask: 0,
-        isTouchActive: true
-      });
+        cornerstoneTools.setToolActive('StackScrollMultiTouch', {
+          mouseButtonMask: 0,
+          isTouchActive: true
+        });
 
-      cornerstoneTools.stackPrefetch.setConfiguration({
-        maxImagesToPrefetch: Infinity,
-        preserveExistingPool: false,
-        maxSimultaneousRequests: 6
-      });
+        cornerstoneTools.stackPrefetch.setConfiguration({
+          maxImagesToPrefetch: Infinity,
+          preserveExistingPool: false,
+          maxSimultaneousRequests: 6
+        });
 
-      /* For mouse devices, by default we turn on:
+        /* For mouse devices, by default we turn on:
       - Stack scrolling by mouse wheel
       - Stack scrolling by keyboard up / down arrow keys
       - Pan with middle click
       - Zoom with right click
       */
 
-      cornerstoneTools.setToolActive('StackScrollMouseWheel', {
-        mouseButtonMask: 0,
-        isTouchActive: true
-      });
+        cornerstoneTools.setToolActive('StackScrollMouseWheel', {
+          mouseButtonMask: 0,
+          isTouchActive: true
+        });
 
-      element.addEventListener(
-        cornerstone.EVENTS.IMAGE_RENDERED,
-        this.onImageRendered
-      );
+        element.addEventListener(
+          cornerstone.EVENTS.IMAGE_RENDERED,
+          this.onImageRendered
+        );
 
-      element.addEventListener(cornerstone.EVENTS.NEW_IMAGE, this.onNewImage);
+        element.addEventListener(cornerstone.EVENTS.NEW_IMAGE, this.onNewImage);
 
-      element.addEventListener(
-        cornerstoneTools.EVENTS.STACK_SCROLL,
-        this.onStackScroll
-      );
+        element.addEventListener(
+          cornerstoneTools.EVENTS.STACK_SCROLL,
+          this.onStackScroll
+        );
 
-      element.addEventListener(
-        cornerstoneTools.EVENTS.MEASUREMENT_ADDED,
-        this.onMeasurementAddedOrRemoved
-      );
+        element.addEventListener(
+          cornerstoneTools.EVENTS.MEASUREMENT_ADDED,
+          this.onMeasurementAddedOrRemoved
+        );
 
-      element.addEventListener(
-        cornerstoneTools.EVENTS.MEASUREMENT_REMOVED,
-        this.onMeasurementAddedOrRemoved
-      );
+        element.addEventListener(
+          cornerstoneTools.EVENTS.MEASUREMENT_REMOVED,
+          this.onMeasurementAddedOrRemoved
+        );
 
-      element.addEventListener(
-        cornerstoneTools.EVENTS.MOUSE_CLICK,
-        this.onMouseClick
-      );
+        element.addEventListener(
+          cornerstoneTools.EVENTS.MOUSE_CLICK,
+          this.onMouseClick
+        );
 
-      element.addEventListener(
-        cornerstoneTools.EVENTS.TOUCH_PRESS,
-        this.onTouchPress
-      );
+        element.addEventListener(
+          cornerstoneTools.EVENTS.TOUCH_PRESS,
+          this.onTouchPress
+        );
 
-      element.addEventListener(
-        cornerstoneTools.EVENTS.TOUCH_START,
-        this.onTouchStart
-      );
+        element.addEventListener(
+          cornerstoneTools.EVENTS.TOUCH_START,
+          this.onTouchStart
+        );
 
-      window.addEventListener(EVENT_RESIZE, this.onWindowResize);
+        window.addEventListener(EVENT_RESIZE, this.onWindowResize);
 
-      this.setState({
-        viewportHeight: `${this.element.clientHeight - 20}px`
-      });
-    });
+        this.setState({
+          viewportHeight: `${this.element.clientHeight - 20}px`
+        });
+      },
+      error => {
+        console.error(error);
+
+        this.setState({
+          error
+        });
+      }
+    );
   }
 
   componentWillUnmount() {
@@ -473,14 +465,14 @@ class CornerstoneViewport extends Component {
     // TODO[cornerstoneTools]: Make this happen internally
     // toolManager.removeToolsForElement(element);
 
+    // Clear the stack prefetch data
+    // TODO[cornerstoneTools]: Make this happen internally
+    cornerstoneTools.clearToolState(element, 'stackPrefetch');
+
     // Disable the viewport element with Cornerstone
     // This also triggers the removal of the element from all available
     // synchronizers, such as the one used for reference lines.
     cornerstone.disable(element);
-
-    // Clear the stack prefetch data
-    // TODO[cornerstoneTools]: Make this happen internally
-    cornerstoneTools.clearToolState(element, 'stackPrefetch');
 
     // Try to stop any currently playing clips
     // Otherwise the interval will continuously throw errors

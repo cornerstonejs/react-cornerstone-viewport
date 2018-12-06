@@ -4,7 +4,7 @@ import PropTypes from 'prop-types';
 
 //import { $ } from 'meteor/jquery';
 
-//import './LoadingIndicator.styl';
+import './LoadingIndicator.styl';
 
 /*(Meteor.startup(() => {
     // This checking is necessary because cornerstoneTools may not have some tools available.
@@ -73,10 +73,6 @@ const errorLoadingHandler = (element, imageId, error, source) => {
 };*/
 
 class LoadingIndicator extends Component {
-  constructor(props) {
-    super(props);
-  }
-
   render() {
     // TODO[react]: Pass this in as a prop reactively
     //const percentComplete = Session.get('CornerstoneLoadProgress' + this.viewportIndex);
@@ -92,7 +88,7 @@ class LoadingIndicator extends Component {
             <div className="indicatorContents">
               <h4>Error Loading Image</h4>
               <p className="description">An error has occurred.</p>
-              <p className="details">{this.props.error}</p>
+              <p className="details">{this.props.error.message}</p>
             </div>
           </div>
         ) : (
@@ -112,7 +108,7 @@ class LoadingIndicator extends Component {
 
 LoadingIndicator.propTypes = {
   percentComplete: PropTypes.number,
-  error: PropTypes.string
+  error: PropTypes.object
 };
 
 export default LoadingIndicator;
