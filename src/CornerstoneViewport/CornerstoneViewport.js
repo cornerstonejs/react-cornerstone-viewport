@@ -508,9 +508,11 @@ class CornerstoneViewport extends Component {
     ) {
       const {
         displaySetInstanceUid,
-        studyInstanceUid,
-        currentImageIdIndex
+        studyInstanceUid
       } = this.props.viewportData;
+
+      const currentImageIdIndex = this.props.viewportData.stack
+        .currentImageIdIndex;
 
       // Create shortcut to displaySet
       /*const study = OHIF.viewer.Studies.findBy({
@@ -521,7 +523,7 @@ class CornerstoneViewport extends Component {
             return set.displaySetInstanceUid === displaySetInstanceUid;
         });*/
 
-      const stack = this.props.stack;
+      const stack = this.props.viewportData.stack;
       const stackData = this.cornerstoneTools.getToolState(
         this.element,
         'stack'
