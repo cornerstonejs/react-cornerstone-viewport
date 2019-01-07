@@ -4,14 +4,16 @@ import PropTypes from 'prop-types';
 import './ImageScrollbar.styl';
 
 class ImageScrollbar extends Component {
-  constructor(props) {
-    super(props);
-
-    this.onChange = this.onChange.bind(this);
-    this.onKeyDown = this.onKeyDown.bind(this);
-  }
+  static propTypes = {
+    value: PropTypes.number.isRequired,
+    onInputCallback: PropTypes.func.isRequired
+  };
 
   render() {
+    if (this.props.max === 0) {
+      return null;
+    }
+
     this.style = {
       width: `${this.props.height}`
     };
@@ -35,12 +37,12 @@ class ImageScrollbar extends Component {
     );
   }
 
-  onChange(event) {
+  onChange = event => {
     const intValue = parseInt(event.target.value, 10);
     this.props.onInputCallback(intValue);
-  }
+  };
 
-  onKeyDown(event) {
+  onKeyDown = event => {
     // We don't allow direct keyboard up/down input on the
     // image sliders since the natural direction is reversed (0 is at the top)
 
@@ -57,12 +59,7 @@ class ImageScrollbar extends Component {
       OHIF.commands.run('scrollUp');
       event.preventDefault();
     }
-  }
+  };
 }
-
-ImageScrollbar.propTypes = {
-  value: PropTypes.number.isRequired,
-  onInputCallback: PropTypes.func.isRequired
-};
 
 export default ImageScrollbar;

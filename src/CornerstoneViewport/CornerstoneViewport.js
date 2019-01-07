@@ -9,18 +9,12 @@ import ViewportOrientationMarkers from '../ViewportOrientationMarkers/ViewportOr
 import './CornerstoneViewport.css';
 
 const EVENT_RESIZE = 'resize';
-const loadIndicatorDelay = 45;
-/*const {
-    loadHandlerManager,
-} = cornerstoneTools;*/
 
 function setToolsPassive(cornerstoneTools, tools) {
   tools.forEach(tool => {
     cornerstoneTools.setToolPassive(tool);
   });
 }
-
-const logger = console;
 
 function initializeTools(cornerstoneTools, tools) {
   Array.from(tools).forEach(tool => {
@@ -36,8 +30,27 @@ function initializeTools(cornerstoneTools, tools) {
 class CornerstoneViewport extends Component {
   static defaultProps = {
     activeTool: 'Wwwc',
+    viewportData: {
+      stack: {
+        imageIds: [],
+        currentImageIdIndex: 0
+      }
+    },
     cornerstoneOptions: {}
   };
+
+  static propTypes = {
+    activeTool: PropTypes.string,
+    viewportData: PropTypes.object.isRequired,
+    measurementsAddedOrRemoved: PropTypes.func,
+    measurementsChanged: PropTypes.func,
+    activeViewportIndex: PropTypes.number,
+    cornerstoneOptions: PropTypes.object,
+    setViewportActive: PropTypes.func,
+    layout: PropTypes.object
+  };
+
+  static loadIndicatorDelay = 45;
 
   constructor(props) {
     super(props);
@@ -53,18 +66,16 @@ class CornerstoneViewport extends Component {
       displaySetInstanceUid: this.props.viewportData.displaySetInstanceUid,
       imageId: stack.imageIds[0],
       viewportHeight: '100%',
-      isLoading: false, // true,
+      isLoading: true,
       imageScrollbarValue: 0,
       numImagesLoaded: 0,
-      error: null
+      error: null,
+      viewport: this.cornerstone.getDefaultViewport(null, undefined)
     };
 
-    this.displayScrollbar = stack.imageIds.length > 1;
-    this.state.viewport = this.cornerstone.getDefaultViewport(null, undefined);
-
-    this.loadHandlerTimeout = 25;
-    // loadHandlerManager.setStartLoadHandler(this.startLoadingHandler);
-    // loadHandlerManager.setEndLoadHandler(this.doneLoadingHandler);
+    const { loadHandlerManager } = this.cornerstoneTools;
+    loadHandlerManager.setStartLoadHandler(this.startLoadingHandler);
+    loadHandlerManager.setEndLoadHandler(this.doneLoadingHandler);
 
     this.debouncedResize = debounce(() => {
       try {
@@ -80,15 +91,14 @@ class CornerstoneViewport extends Component {
         viewportHeight: `${this.element.clientHeight - 20}px`
       });
     }, 300);
-
-    this.slideTimeoutTime = 25;
-    this.slideTimeout = null;
   }
 
   render() {
     const isLoading =
       this.state.isLoading ||
       this.state.numImagesLoaded / this.state.stack.imageIds.length < 0.1;
+
+    const displayLoadingIndicator = isLoading || this.state.error;
 
     let className = 'CornerstoneViewport';
     if (
@@ -99,14 +109,6 @@ class CornerstoneViewport extends Component {
 
     return (
       <div className={className}>
-        {/*<ToolContextMenu
-            toolContextMenuData={
-                    this.state.toolContextMenuData
-                }
-            onClose={
-                    this.onCloseToolContextMenu
-                }
-            />*/}
         <div
           className="viewport-element"
           onContextMenu={this.onContextMenu}
@@ -114,10 +116,8 @@ class CornerstoneViewport extends Component {
             this.element = input;
           }}
         >
-          {isLoading || this.state.error ? (
+          {displayLoadingIndicator && (
             <LoadingIndicator error={this.state.error} />
-          ) : (
-            ''
           )}
           <canvas className="cornerstone-canvas" />
           <ViewportOverlay
@@ -131,14 +131,20 @@ class CornerstoneViewport extends Component {
             viewport={this.state.viewport}
           />
         </div>
-        {this.displayScrollbar && (
-          <ImageScrollbar
-            onInputCallback={this.imageSliderOnInputCallback}
-            max={this.state.stack.imageIds.length - 1}
-            value={this.state.imageScrollbarValue}
-            height={this.state.viewportHeight}
-          />
-        )}
+        <ImageScrollbar
+          onInputCallback={this.imageSliderOnInputCallback}
+          max={this.state.stack.imageIds.length - 1}
+          value={this.state.imageScrollbarValue}
+          height={this.state.viewportHeight}
+        />
+        {/*<ToolContextMenu
+            toolContextMenuData={
+                    this.state.toolContextMenuData
+                }
+            onClose={
+                    this.onCloseToolContextMenu
+                }
+            />*/}
         {/* this.state.bidirectionalAddLabelShow && (
         <Labelling
           measurementData={this.bidirectional.measurementData}
@@ -148,33 +154,10 @@ class CornerstoneViewport extends Component {
           editDescription={this.bidirectional.editDescription}
         />
       )*/}
+        {this.props.children}
       </div>
     );
   }
-
-  bidirectionalToolLabellingCallback = (
-    measurementData,
-    eventData,
-    doneCallback,
-    options = {}
-  ) => {
-    const labellingDoneCallback = () => {
-      this.hideExtraButtons();
-      return doneCallback();
-    };
-
-    this.bidirectional = {
-      measurementData,
-      eventData,
-      labellingDoneCallback,
-      skipButton: options.skipButton,
-      editDescription: options.editDescription
-    };
-
-    this.setState({
-      bidirectionalAddLabelShow: true
-    });
-  };
 
   onContextMenu = event => {
     // Preventing the default behaviour for right-click is essential to
@@ -285,7 +268,7 @@ class CornerstoneViewport extends Component {
     try {
       imagePromise = this.cornerstone.loadAndCacheImage(imageId);
     } catch (error) {
-      logger.error(error);
+      console.error(error);
       if (!imagePromise) {
         this.setState({ error });
         return;
@@ -354,6 +337,12 @@ class CornerstoneViewport extends Component {
               maxScale: 25,
               preventZoomOutsideImage: true
             }
+          },
+          {
+            name: 'Length'
+          },
+          {
+            name: 'Angle'
           },
           {
             name: 'Pan'
@@ -470,7 +459,7 @@ class CornerstoneViewport extends Component {
         this.cornerstoneTools.stopClip(element);
       }
     } catch (error) {
-      logger.warn(error);
+      //console.warn(error);
     }
 
     this.cornerstone.events.removeEventListener(
@@ -570,6 +559,10 @@ class CornerstoneViewport extends Component {
       });
     }
 
+    if (this.props.layout !== prevProps.layout) {
+      this.cornerstone.resize(this.element, true);
+    }
+
     // TODO: Check this, causes infinite loop
     // this.debouncedResize();
   }
@@ -623,13 +616,12 @@ class CornerstoneViewport extends Component {
   };
 
   startLoadingHandler = () => {
-    // console.log('startLoadingHandler');
     clearTimeout(this.loadHandlerTimeout);
     this.loadHandlerTimeout = setTimeout(() => {
       this.setState({
         isLoading: true
       });
-    }, loadIndicatorDelay);
+    }, CornerstoneViewport.loadIndicatorDelay);
   };
 
   doneLoadingHandler = () => {
@@ -722,12 +714,7 @@ class CornerstoneViewport extends Component {
       imageScrollbarValue: value
     });
 
-    // Note that we throttle requests to prevent the
-    // user's ultrafast scrolling from firing requests too quickly.
-    // clearTimeout(this.slideTimeout);
-    // this.slideTimeout = setTimeout(() => {
     this.scrollToIndex(this.element, value);
-    // }, this.slideTimeoutTime);
   };
 
   hideExtraButtons = () => {
@@ -741,15 +728,5 @@ class CornerstoneViewport extends Component {
     });
   };
 }
-
-CornerstoneViewport.propTypes = {
-  measurementsAddedOrRemoved: PropTypes.func,
-  measurementsChanged: PropTypes.func,
-  activeTool: PropTypes.string,
-  viewportData: PropTypes.object.isRequired,
-  activeViewportIndex: PropTypes.number,
-  cornerstoneOptions: PropTypes.object,
-  setViewportActive: PropTypes.func
-};
 
 export default CornerstoneViewport;
