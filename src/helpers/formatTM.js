@@ -1,6 +1,6 @@
 import moment from 'moment';
 
-export default function formatTM(time, format="HH:mm:ss") {
+export default function formatTM(time, format = 'HH:mm:ss') {
   if (!time) {
     return;
   }
@@ -15,4 +15,4 @@ export default function formatTM(time, format="HH:mm:ss") {
   const dateTime = moment(time, 'HHmmss.SSS');
 
   return dateTime.format(format);
-};
+}

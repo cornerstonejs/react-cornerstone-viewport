@@ -6,6 +6,8 @@ import './ImageScrollbar.styl';
 class ImageScrollbar extends Component {
   static propTypes = {
     value: PropTypes.number.isRequired,
+    max: PropTypes.number.isRequired,
+    height: PropTypes.string.isRequired,
     onInputCallback: PropTypes.func.isRequired
   };
 
@@ -52,11 +54,12 @@ class ImageScrollbar extends Component {
       UP: 38
     };
 
+    // TODO: Enable scroll down / scroll up without depending on ohif-core
     if (event.which === keys.DOWN) {
-      OHIF.commands.run('scrollDown');
+      //OHIF.commands.run('scrollDown');
       event.preventDefault();
     } else if (event.which === keys.UP) {
-      OHIF.commands.run('scrollUp');
+      //OHIF.commands.run('scrollUp');
       event.preventDefault();
     }
   };

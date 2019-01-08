@@ -17,7 +17,7 @@ import './LoadingIndicator.styl';
     }
 });*/
 
-let loadHandlerTimeout;
+//let loadHandlerTimeout;
 
 /*const startLoadingHandler = element => {
     clearTimeout(loadHandlerTimeout);

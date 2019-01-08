@@ -15,4 +15,4 @@ export default function formatPN(name) {
 
   // Trim any extraneous whitespace
   return cleaned.trim();
-};
+}

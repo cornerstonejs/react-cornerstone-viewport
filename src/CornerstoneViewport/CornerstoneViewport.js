@@ -40,6 +40,9 @@ class CornerstoneViewport extends Component {
   };
 
   static propTypes = {
+    cornerstone: PropTypes.object.isRequired,
+    cornerstoneTools: PropTypes.object.isRequired,
+    children: PropTypes.node,
     activeTool: PropTypes.string,
     viewportData: PropTypes.object.isRequired,
     measurementsAddedOrRemoved: PropTypes.func,
@@ -66,7 +69,7 @@ class CornerstoneViewport extends Component {
       displaySetInstanceUid: this.props.viewportData.displaySetInstanceUid,
       imageId: stack.imageIds[0],
       viewportHeight: '100%',
-      isLoading: true,
+      isLoading: false,
       imageScrollbarValue: 0,
       numImagesLoaded: 0,
       error: null,
@@ -129,6 +132,8 @@ class CornerstoneViewport extends Component {
           <ViewportOrientationMarkers
             imageId={this.state.imageId}
             viewport={this.state.viewport}
+            cornerstone={this.props.cornerstone}
+            cornerstoneTools={this.props.cornerstoneTools}
           />
         </div>
         <ImageScrollbar

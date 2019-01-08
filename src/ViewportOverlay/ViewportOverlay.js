@@ -1,7 +1,6 @@
 import { Component } from 'react';
 import React from 'react';
 import PropTypes from 'prop-types';
-import cornerstone from 'cornerstone-core';
 import { helpers } from '../helpers/index.js';
 import './ViewportOverlay.styl';
 
@@ -13,7 +12,7 @@ const {
   isValidNumber
 } = helpers;
 
-function getCompression(imageId) {
+/*function getCompression(imageId) {
   const instance = cornerstone.metaData.get('instance', imageId);
   if (!instance) {
     return '';
@@ -41,7 +40,7 @@ function getImageDimensions(imageId) {
   }
 
   return `${instance.columns} x ${instance.rows}`;
-}
+}*/
 
 class ViewportOverlay extends Component {
   render() {
