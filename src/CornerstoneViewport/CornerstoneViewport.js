@@ -36,7 +36,8 @@ class CornerstoneViewport extends Component {
         currentImageIdIndex: 0
       }
     },
-    cornerstoneOptions: {}
+    cornerstoneOptions: {},
+    enableStackPrefetch: true
   };
 
   static propTypes = {
@@ -307,9 +308,6 @@ class CornerstoneViewport extends Component {
         // Clear any previous tool state
         this.cornerstoneTools.clearToolState(this.element, 'stack');
 
-        // Disable stack prefetch in case there are still queued requests
-        this.cornerstoneTools.stackPrefetch.disable(this.element);
-
         /* Add the stack tool state to the enabled element, and
            add stack state managers for the stack tool, CINE tool, and reference lines
         */
@@ -320,7 +318,10 @@ class CornerstoneViewport extends Component {
           'referenceLines'
         ]);
         this.cornerstoneTools.addToolState(element, 'stack', stack);
-        this.cornerstoneTools.stackPrefetch.enable(this.element);
+
+        if (this.props.enableStackPrefetch) {
+          this.cornerstoneTools.stackPrefetch.enable(this.element);
+        }
 
         const tools = [
           {
@@ -392,6 +393,7 @@ class CornerstoneViewport extends Component {
           isTouchActive: true
         });
 
+        // TODO: We should probably configure this somewhere else
         this.cornerstoneTools.stackPrefetch.setConfiguration({
           maxImagesToPrefetch: Infinity,
           preserveExistingPool: false,
@@ -568,8 +570,17 @@ class CornerstoneViewport extends Component {
       this.cornerstone.resize(this.element, true);
     }
 
-    // TODO: Check this, causes infinite loop
-    // this.debouncedResize();
+    if (
+      this.props.enableStackPrefetch !== prevProps.enableStackPrefetch &&
+      this.props.enableStackPrefetch === true
+    ) {
+      this.cornerstoneTools.stackPrefetch.enable(this.element);
+    } else if (
+      this.props.enableStackPrefetch !== prevProps.enableStackPrefetch &&
+      this.props.enableStackPrefetch === false
+    ) {
+      this.cornerstoneTools.stackPrefetch.disable(this.element);
+    }
   }
 
   setActiveTool = activeTool => {
