@@ -1,9 +1,9 @@
-import { Component } from 'react';
+import { PureComponent } from 'react';
 import React from 'react';
 import PropTypes from 'prop-types';
 import './ImageScrollbar.styl';
 
-class ImageScrollbar extends Component {
+class ImageScrollbar extends PureComponent {
   static propTypes = {
     value: PropTypes.number.isRequired,
     max: PropTypes.number.isRequired,

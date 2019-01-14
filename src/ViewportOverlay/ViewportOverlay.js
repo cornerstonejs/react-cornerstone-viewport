@@ -1,4 +1,4 @@
-import { Component } from 'react';
+import { PureComponent } from 'react';
 import React from 'react';
 import PropTypes from 'prop-types';
 import { helpers } from '../helpers/index.js';
@@ -42,7 +42,7 @@ function getImageDimensions(imageId) {
   return `${instance.columns} x ${instance.rows}`;
 }*/
 
-class ViewportOverlay extends Component {
+class ViewportOverlay extends PureComponent {
   render() {
     const zoom = this.props.viewport.scale * 100;
     const imageId = this.props.imageId;

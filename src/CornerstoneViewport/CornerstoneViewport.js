@@ -36,8 +36,13 @@ class CornerstoneViewport extends Component {
         currentImageIdIndex: 0
       }
     },
+    isActive: false,
     cornerstoneOptions: {},
-    enableStackPrefetch: true
+    enableStackPrefetch: true,
+    cineToolData: {
+      isPlaying: false,
+      cineFrameRate: 24
+    }
   };
 
   static propTypes = {
@@ -48,10 +53,13 @@ class CornerstoneViewport extends Component {
     viewportData: PropTypes.object.isRequired,
     measurementsAddedOrRemoved: PropTypes.func,
     measurementsChanged: PropTypes.func,
-    activeViewportIndex: PropTypes.number,
+    isActive: PropTypes.bool.isRequired,
     cornerstoneOptions: PropTypes.object,
     setViewportActive: PropTypes.func,
-    layout: PropTypes.object
+    setViewportSpecificData: PropTypes.func,
+    clearViewportSpecificData: PropTypes.func,
+    layout: PropTypes.object,
+    cineToolData: PropTypes.object
   };
 
   static loadIndicatorDelay = 45;
@@ -71,7 +79,6 @@ class CornerstoneViewport extends Component {
       imageId: stack.imageIds[0],
       viewportHeight: '100%',
       isLoading: false,
-      imageScrollbarValue: 0,
       numImagesLoaded: 0,
       error: null,
       viewport: this.cornerstone.getDefaultViewport(null, undefined)
@@ -105,9 +112,7 @@ class CornerstoneViewport extends Component {
     const displayLoadingIndicator = isLoading || this.state.error;
 
     let className = 'CornerstoneViewport';
-    if (
-      this.props.activeViewportIndex === this.props.viewportData.viewportIndex
-    ) {
+    if (this.props.isActive) {
       className += ' active';
     }
 
@@ -140,7 +145,7 @@ class CornerstoneViewport extends Component {
         <ImageScrollbar
           onInputCallback={this.imageSliderOnInputCallback}
           max={this.state.stack.imageIds.length - 1}
-          value={this.state.imageScrollbarValue}
+          value={this.state.stack.currentImageIdIndex}
           height={this.state.viewportHeight}
         />
         {/*<ToolContextMenu
@@ -209,7 +214,7 @@ class CornerstoneViewport extends Component {
         eventType: this.cornerstoneTools.EVENTS.STACK_SCROLL,
         handler: this.onStackScroll
       },
-      {
+      /*{
         eventTarget: element,
         eventType: this.cornerstoneTools.EVENTS.MEASUREMENT_ADDED,
         handler: this.onMeasurementAddedOrRemoved
@@ -218,7 +223,7 @@ class CornerstoneViewport extends Component {
         eventTarget: element,
         eventType: this.cornerstoneTools.EVENTS.MEASUREMENT_REMOVED,
         handler: this.onMeasurementAddedOrRemoved
-      },
+      },*/
       {
         eventTarget: element,
         eventType: this.cornerstoneTools.EVENTS.MOUSE_CLICK,
@@ -253,16 +258,16 @@ class CornerstoneViewport extends Component {
         eventTarget: window,
         eventType: EVENT_RESIZE,
         handler: this.onWindowResize
+      },
+      {
+        eventTarget: this.cornerstone.events,
+        eventType: this.cornerstone.EVENTS.IMAGE_LOADED,
+        handler: this.onImageLoaded
       }
     ];
 
     // Enable the DOM Element for use with Cornerstone
     this.cornerstone.enable(element, this.props.cornerstoneOptions);
-
-    this.cornerstone.events.addEventListener(
-      this.cornerstone.EVENTS.IMAGE_LOADED,
-      this.onImageLoaded
-    );
 
     // Handle the case where the imageId isn't loaded correctly and the
     // imagePromise returns undefined
@@ -469,10 +474,9 @@ class CornerstoneViewport extends Component {
       //console.warn(error);
     }
 
-    this.cornerstone.events.removeEventListener(
-      this.cornerstone.EVENTS.IMAGE_LOADED,
-      this.onImageLoaded
-    );
+    if (this.props.clearViewportSpecificData) {
+      this.props.clearViewportSpecificData();
+    }
   }
 
   componentDidUpdate(prevProps) {
@@ -522,12 +526,20 @@ class CornerstoneViewport extends Component {
 
       const imageId = currentStack.imageIds[currentImageIdIndex];
 
-      this.setState({
+      const viewportSpecificData = {
         displaySetInstanceUid,
         studyInstanceUid,
         stack,
         imageId
-      });
+      };
+
+      this.setState(viewportSpecificData);
+
+      /*
+      Temporarily removed because it didn't seem to be performing well
+      if (this.props.setViewportSpecificData) {
+        this.props.setViewportSpecificData(viewportSpecificData);
+      }*/
 
       this.cornerstoneTools.stackPrefetch.disable(this.element);
       this.cornerstone.loadAndCacheImage(imageId).then(image => {
@@ -581,10 +593,44 @@ class CornerstoneViewport extends Component {
     ) {
       this.cornerstoneTools.stackPrefetch.disable(this.element);
     }
+
+    if (
+      this.props.cineToolData.isPlaying !== prevProps.cineToolData.isPlaying
+    ) {
+      if (this.props.cineToolData.isPlaying) {
+        this.cornerstoneTools.playClip(this.element);
+      } else {
+        this.cornerstoneTools.stopClip(this.element);
+      }
+    }
+
+    if (
+      this.props.cineToolData.cineFrameRate !==
+      prevProps.cineToolData.cineFrameRate
+    ) {
+      if (this.props.cineToolData.isPlaying) {
+        this.cornerstoneTools.playClip(
+          this.element,
+          this.props.cineToolData.cineFrameRate
+        );
+      } else {
+        this.cornerstoneTools.stopClip(
+          this.element,
+          this.props.cineToolData.cineFrameRate
+        );
+      }
+    }
   }
 
   setActiveTool = activeTool => {
-    const leftMouseTools = ['Bidirectional', 'Wwwc', 'StackScroll'];
+    // TODO: allow this config as props
+    const leftMouseTools = [
+      'Bidirectional',
+      'Wwwc',
+      'Length',
+      'Angle',
+      'StackScroll'
+    ];
 
     setToolsPassive(this.cornerstoneTools, leftMouseTools);
 
@@ -620,9 +666,14 @@ class CornerstoneViewport extends Component {
     this.hideExtraButtons();
 
     this.setState({
-      stack,
-      imageScrollbarValue: stack.currentImageIdIndex
+      stack
     });
+
+    /*
+    Temporarily removed because it didn't seem to be performing well
+    if (this.props.setViewportSpecificData) {
+      this.props.setViewportSpecificData({ stack });
+    }*/
   };
 
   onImageLoaded = () => {
@@ -681,11 +732,8 @@ class CornerstoneViewport extends Component {
   };
 
   setViewportActive = () => {
-    const { viewportIndex } = this.props.viewportData;
-
-    const activeViewportIndex = this.props.activeViewportIndex;
-    if (viewportIndex !== activeViewportIndex && this.props.setViewportActive) {
-      this.props.setViewportActive(viewportIndex);
+    if (!this.props.isActive) {
+      this.props.setViewportActive();
     }
   };
 
@@ -726,9 +774,18 @@ class CornerstoneViewport extends Component {
   imageSliderOnInputCallback = value => {
     this.setViewportActive();
 
+    const stack = this.state.stack;
+    stack.currentImageIdIndex = value;
+
     this.setState({
-      imageScrollbarValue: value
+      stack
     });
+
+    /*
+    Temporarily removed because it didn't seem to be performing well
+    if (this.props.setViewportSpecificData) {
+      this.props.setViewportSpecificData({ stack });
+    }*/
 
     this.scrollToIndex(this.element, value);
   };

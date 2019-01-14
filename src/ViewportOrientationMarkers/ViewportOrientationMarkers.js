@@ -1,4 +1,4 @@
-import { Component } from 'react';
+import { PureComponent } from 'react';
 import React from 'react';
 import PropTypes from 'prop-types';
 import './ViewportOrientationMarkers.styl';
@@ -75,7 +75,7 @@ export function getOrientationMarkers(
   return markers;
 }
 
-class ViewportOrientationMarkers extends Component {
+class ViewportOrientationMarkers extends PureComponent {
   render() {
     const { imageId, viewport, cornerstone, cornerstoneTools } = this.props;
     const markers = getOrientationMarkers(
