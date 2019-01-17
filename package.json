@@ -1,6 +1,6 @@
 {
   "name": "react-cornerstone-viewport",
-  "version": "0.1.7",
+  "version": "0.1.8",
   "description": "Cornerstone medical image viewport component for React",
   "author": "Cornerstone Contributors",
   "license": "MIT",
@@ -23,7 +23,6 @@
     "generateStaticSite": "./generateStaticSite.sh"
   },
   "peerDependencies": {
-    "prop-types": "^15.5.4",
     "react": "^15.0.0 || ^16.0.0",
     "react-dom": "^15.0.0 || ^16.0.0"
   },
@@ -45,6 +44,7 @@
     "husky": "^1.2.1",
     "lint-staged": "^8.1.0",
     "prettier": "^1.15.3",
+    "prop-types": "^15.6.2",
     "react": "^16.6.3",
     "react-dom": "^16.6.3",
     "react-scripts": "^2.1.1",

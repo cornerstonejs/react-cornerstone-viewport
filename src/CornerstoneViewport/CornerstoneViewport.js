@@ -75,7 +75,7 @@ class CornerstoneViewport extends Component {
     const { stack } = props.viewportData;
     this.state = {
       stack,
-      displaySetInstanceUid: this.props.viewportData.displaySetInstanceUid,
+      displaySetInstanceUid: props.viewportData.displaySetInstanceUid,
       imageId: stack.imageIds[0],
       viewportHeight: '100%',
       isLoading: false,
@@ -105,9 +105,7 @@ class CornerstoneViewport extends Component {
   }
 
   render() {
-    const isLoading =
-      this.state.isLoading ||
-      this.state.numImagesLoaded / this.state.stack.imageIds.length < 0.1;
+    const isLoading = this.state.isLoading || this.state.numImagesLoaded < 1;
 
     const displayLoadingIndicator = isLoading || this.state.error;
 
@@ -579,7 +577,7 @@ class CornerstoneViewport extends Component {
     }
 
     if (this.props.layout !== prevProps.layout) {
-      this.cornerstone.resize(this.element, true);
+      this.debouncedResize();
     }
 
     if (
@@ -787,6 +785,7 @@ class CornerstoneViewport extends Component {
       this.props.setViewportSpecificData({ stack });
     }*/
 
+    // TODO: For some reason this isn't working?
     this.scrollToIndex(this.element, value);
   };
 
