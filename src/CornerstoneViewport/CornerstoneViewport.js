@@ -730,7 +730,7 @@ class CornerstoneViewport extends Component {
   };
 
   setViewportActive = () => {
-    if (!this.props.isActive) {
+    if (!this.props.isActive && this.props.setViewportActive) {
       this.props.setViewportActive();
     }
   };
