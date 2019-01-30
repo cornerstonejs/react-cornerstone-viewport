@@ -17,6 +17,16 @@ export default {
       sourcemap: true
     },
     {
+      file: pkg.browser,
+      format: 'umd',
+      name: 'react-cornerstone-viewport',
+      sourcemap: true,
+      globals: {
+        'react': 'React',
+        'react-dom': 'ReactDOM'
+      }
+    },
+    {
       file: pkg.module,
       format: 'es',
       sourcemap: true
