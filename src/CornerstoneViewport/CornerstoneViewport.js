@@ -307,10 +307,6 @@ class CornerstoneViewport extends Component {
           element,
           image
         );
-        viewport.voi = {
-          windowWidth: 400,
-          windowCenter: 40
-        };
 
         // Display the first image
         this.cornerstone.displayImage(element, image, viewport);
