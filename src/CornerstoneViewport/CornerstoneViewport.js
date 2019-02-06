@@ -75,11 +75,12 @@ class CornerstoneViewport extends Component {
     enableStackPrefetch: PropTypes.bool.isRequired,
     cineToolData: PropTypes.object.isRequired,
     availableTools: PropTypes.array.isRequired,
+    onMeasurementAdded: PropTypes.func,
+    onMeasurementRemoved: PropTypes.func,
+    onMeasurementModified: PropTypes.func,
     isActive: PropTypes.bool.isRequired,
     layout: PropTypes.object,
     children: PropTypes.node,
-    onMeasurementsAddedOrRemoved: PropTypes.func,
-    onMeasurementModified: PropTypes.func,
     onDoubleClick: PropTypes.func,
     onRightClick: PropTypes.func,
     onTouchPress: PropTypes.func,
@@ -224,10 +225,11 @@ class CornerstoneViewport extends Component {
         eventType: this.cornerstoneTools.EVENTS.STACK_SCROLL,
         handler: this.onStackScroll
       },
+
       {
         eventTarget: element,
         eventType: this.cornerstoneTools.EVENTS.MEASUREMENT_ADDED,
-        handler: this.onMeasurementAddedOrRemoved
+        handler: this.onMeasurementAdded
       },
       {
         eventTarget: element,
@@ -237,8 +239,14 @@ class CornerstoneViewport extends Component {
       {
         eventTarget: element,
         eventType: this.cornerstoneTools.EVENTS.MEASUREMENT_REMOVED,
-        handler: this.onMeasurementAddedOrRemoved
+        handler: this.onMeasurementRemoved
       },
+      {
+        eventTarget: element,
+        eventType: this.cornerstoneTools.EVENTS.MEASUREMENT_MODIFIED,
+        handler: this.onMeasurementModified
+      },
+
       {
         eventTarget: element,
         eventType: this.cornerstoneTools.EVENTS.MOUSE_CLICK,
@@ -680,11 +688,48 @@ class CornerstoneViewport extends Component {
     });
   };
 
-  onMeasurementAddedOrRemoved = event => {
-    if (this.props.onMeasurementsAddedOrRemoved) {
-      this.props.onMeasurementsAddedOrRemoved(event);
+  onMeasurementAdded = (...args) => {
+    if (this.props.onMeasurementAdded) {
+      this.props.onMeasurementAdded(...args);
     }
   };
+
+  onMeasurementRemoved = (...args) => {
+    if (this.props.onMeasurementRemoved) {
+      this.props.onMeasurementRemoved(...args);
+    }
+  };
+
+  onMeasurementModified = (...args) => {
+    if (this.props.onMeasurementModified) {
+      this.props.onMeasurementModified(...args);
+    }
+  };
+
+  onMeasurementAddedOrRemoved = () => {
+    console.log('onMeasurementAddedOrRemoved');
+
+    /* const { toolType, measurementData } = event.detail;
+
+    // TODO: Pass in as prop?
+    const toolsOfInterest = ['Bidirectional'];
+
+    this.hideExtraButtons();
+
+    if (toolsOfInterest.includes(toolType)) {
+      const image = cornerstone.getImage(this.element);
+      const viewport = cornerstone.getViewport(this.element);
+
+      const type = {
+        cornerstonetoolsmeasurementadded: 'added',
+        cornerstonetoolsmeasurementremoved: 'removed'
+      };
+      const action = type[event.type];
+
+      if (action === 'added') {
+        measurementData._id = guid();
+        measurementData.viewport = cloneDeep(viewport);
+      }
 
   onMeasurementModified = event => {
     if (this.props.onMeasurementModified) {
