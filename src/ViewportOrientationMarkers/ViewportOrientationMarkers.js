@@ -76,6 +76,11 @@ export function getOrientationMarkers(
 }
 
 class ViewportOrientationMarkers extends PureComponent {
+  static propTypes = {
+    imageId: PropTypes.string.isRequired,
+    viewport: PropTypes.object.isRequired
+  };
+
   render() {
     const { imageId, viewport, cornerstone, cornerstoneTools } = this.props;
     const markers = getOrientationMarkers(
@@ -96,10 +101,5 @@ class ViewportOrientationMarkers extends PureComponent {
     );
   }
 }
-
-ViewportOrientationMarkers.propTypes = {
-  imageId: PropTypes.string.isRequired,
-  viewport: PropTypes.object.isRequired
-};
 
 export default ViewportOrientationMarkers;

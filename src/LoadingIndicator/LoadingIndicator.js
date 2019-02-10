@@ -1,12 +1,11 @@
-import React from 'react';
-import { PureComponent } from 'react';
+import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 
 import './LoadingIndicator.styl';
 
 class LoadingIndicator extends PureComponent {
   static propTypes = {
-    percentComplete: PropTypes.number,
+    percentComplete: PropTypes.number.isRequired,
     error: PropTypes.object
   };
 
@@ -16,8 +15,6 @@ class LoadingIndicator extends PureComponent {
   };
 
   render() {
-    // TODO[react]: Pass this in as a prop reactively
-    //const percentComplete = Session.get('CornerstoneLoadProgress' + this.viewportIndex);
     let percComplete;
     if (this.props.percentComplete && this.props.percentComplete !== 100) {
       percComplete = `${this.props.percentComplete}%`;

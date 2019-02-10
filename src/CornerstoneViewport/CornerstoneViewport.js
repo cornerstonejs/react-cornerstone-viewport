@@ -1,5 +1,4 @@
-import { Component } from 'react';
-import React from 'react';
+import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import debounce from 'lodash.debounce';
 import ImageScrollbar from '../ImageScrollbar/ImageScrollbar.js';
@@ -42,24 +41,49 @@ class CornerstoneViewport extends Component {
     cineToolData: {
       isPlaying: false,
       cineFrameRate: 24
-    }
+    },
+    availableTools: [
+      { name: 'Pan', mouseButtonMasks: [1, 4] },
+      {
+        name: 'Zoom',
+        configuration: {
+          minScale: 0.3,
+          maxScale: 25,
+          preventZoomOutsideImage: true
+        },
+        mouseButtonMasks: [1, 2]
+      },
+      { name: 'Wwwc', mouseButtonMasks: [1] },
+      { name: 'Bidirectional', mouseButtonMasks: [1] },
+      { name: 'Length', mouseButtonMasks: [1] },
+      { name: 'Angle', mouseButtonMasks: [1] },
+      { name: 'StackScroll', mouseButtonMasks: [1] },
+      { name: 'Brush', mouseButtonMasks: [1] },
+      { name: 'PanMultiTouch' },
+      { name: 'ZoomTouchPinch' },
+      { name: 'StackScrollMouseWheel' },
+      { name: 'StackScrollMultiTouch' }
+    ]
   };
 
   static propTypes = {
     cornerstone: PropTypes.object.isRequired,
     cornerstoneTools: PropTypes.object.isRequired,
-    children: PropTypes.node,
-    activeTool: PropTypes.string,
+    activeTool: PropTypes.string.isRequired,
     viewportData: PropTypes.object.isRequired,
+    cornerstoneOptions: PropTypes.object.isRequired,
+    enableStackPrefetch: PropTypes.bool.isRequired,
+    cineToolData: PropTypes.object.isRequired,
+    availableTools: PropTypes.array.isRequired,
+    isActive: PropTypes.bool.isRequired,
+    layout: PropTypes.object,
+    children: PropTypes.node,
     onMeasurementsAddedOrRemoved: PropTypes.func,
     onMeasurementModified: PropTypes.func,
-    isActive: PropTypes.bool.isRequired,
-    cornerstoneOptions: PropTypes.object,
+    onDoubleClick: PropTypes.func,
     setViewportActive: PropTypes.func,
     setViewportSpecificData: PropTypes.func,
-    clearViewportSpecificData: PropTypes.func,
-    layout: PropTypes.object,
-    cineToolData: PropTypes.object
+    clearViewportSpecificData: PropTypes.func
   };
 
   static loadIndicatorDelay = 45;
@@ -156,23 +180,18 @@ class CornerstoneViewport extends Component {
                     this.onCloseToolContextMenu
                 }
             />*/}
-        {/* this.state.bidirectionalAddLabelShow && (
-        <Labelling
-          measurementData={this.bidirectional.measurementData}
-          eventData={this.bidirectional.eventData}
-          labellingDoneCallback={this.bidirectional.labellingDoneCallback}
-          skipButton={this.bidirectional.skipButton}
-          editDescription={this.bidirectional.editDescription}
-        />
-      )*/}
         {this.props.children}
       </div>
     );
   }
 
+  /**
+   * Preventing the default behaviour for right-click is essential to
+   * allow right-click tools to work.
+   *
+   * @param event
+   */
   onContextMenu = event => {
-    // Preventing the default behaviour for right-click is essential to
-    // allow right-click tools to work.
     event.preventDefault();
   };
 
@@ -180,19 +199,15 @@ class CornerstoneViewport extends Component {
     this.debouncedResize();
   };
 
-  onImageRendered = () => {
-    const viewport = this.cornerstone.getViewport(this.element);
-
+  onImageRendered = event => {
     this.setState({
-      viewport
+      viewport: Object.assign({}, event.detail.viewport)
     });
   };
 
-  onNewImage = () => {
-    const image = this.cornerstone.getImage(this.element);
-
+  onNewImage = event => {
     this.setState({
-      imageId: image.imageId
+      imageId: event.detail.image.imageId
     });
   };
 
@@ -328,58 +343,7 @@ class CornerstoneViewport extends Component {
         if (this.props.enableStackPrefetch) {
           this.cornerstoneTools.stackPrefetch.enable(this.element);
         }
-
-        const tools = [
-          {
-            name: 'Bidirectional',
-            configuration: {
-              getMeasurementLocationCallback: this
-                .bidirectionalToolLabellingCallback,
-              shadow: true,
-              drawHandlesOnHover: true
-            }
-          },
-          {
-            name: 'Wwwc'
-          },
-          {
-            name: 'Zoom',
-            configuration: {
-              minScale: 0.3,
-              maxScale: 25,
-              preventZoomOutsideImage: true
-            }
-          },
-          {
-            name: 'Length'
-          },
-          {
-            name: 'Angle'
-          },
-          {
-            name: 'Pan'
-          },
-          {
-            name: 'StackScroll'
-          },
-          {
-            name: 'PanMultiTouch'
-          },
-          {
-            name: 'ZoomTouchPinch'
-          },
-          {
-            name: 'StackScrollMouseWheel'
-          },
-          {
-            name: 'StackScrollMultiTouch'
-          },
-          {
-            name: 'Brush'
-          }
-        ];
-
-        initializeTools(this.cornerstoneTools, tools);
+        initializeTools(this.cornerstoneTools, this.props.availableTools);
 
         this.setActiveTool(this.props.activeTool);
 
@@ -440,9 +404,11 @@ class CornerstoneViewport extends Component {
     );
   }
 
-  onDoubleClick() {
-    console.log('onDoubleClick');
-  }
+  onDoubleClick = event => {
+    if (this.props.onDoubleClick) {
+      this.props.onDoubleClick(event);
+    }
+  };
 
   componentWillUnmount() {
     this.eventHandlerData.forEach(data => {
@@ -452,10 +418,6 @@ class CornerstoneViewport extends Component {
     });
 
     const element = this.element;
-
-    // Remove all tools for the destroyed element
-    // TODO[cornerstoneTools]: Make this happen internally
-    // toolManager.removeToolsForElement(element);
 
     // Clear the stack prefetch data
     // TODO[cornerstoneTools]: Make this happen internally
@@ -497,15 +459,6 @@ class CornerstoneViewport extends Component {
 
       const currentImageIdIndex = this.props.viewportData.stack
         .currentImageIdIndex;
-
-      // Create shortcut to displaySet
-      /*const study = OHIF.viewer.Studies.findBy({
-            studyInstanceUid,
-        });
-
-        const displaySet = study.displaySets.find((set) => {
-            return set.displaySetInstanceUid === displaySetInstanceUid;
-        });*/
 
       const stack = this.props.viewportData.stack;
       const stackData = this.cornerstoneTools.getToolState(
@@ -605,6 +558,16 @@ class CornerstoneViewport extends Component {
         this.cornerstoneTools.playClip(this.element);
       } else {
         this.cornerstoneTools.stopClip(this.element);
+
+        const stackData = this.cornerstoneTools.getToolState(
+          this.element,
+          'stack'
+        );
+        const stack = stackData.data[0];
+
+        if (this.props.setViewportSpecificData) {
+          this.props.setViewportSpecificData({ stack });
+        }
       }
     }
 
@@ -627,32 +590,47 @@ class CornerstoneViewport extends Component {
   }
 
   setActiveTool = activeTool => {
-    // TODO: allow this config as props
-    const leftMouseTools = [
-      'Bidirectional',
-      'Wwwc',
-      'Length',
-      'Angle',
-      'StackScroll'
-    ];
+    // TODO: cache these, update it on componentDidUpdate
+    const leftMouseToolNames = this.props.availableTools
+      .filter(tool => {
+        if (!tool.mouseButtonMasks) {
+          return;
+        }
 
-    setToolsPassive(this.cornerstoneTools, leftMouseTools);
+        return tool.mouseButtonMasks.includes(1);
+      })
+      .map(tool => tool.name);
 
-    // pan is the default tool for middle mouse button
-    const isPanToolActive = activeTool === 'Pan';
-    const panOptions = {
-      mouseButtonMask: isPanToolActive ? [1, 4] : [4],
-      isTouchActive: isPanToolActive
-    };
-    this.cornerstoneTools.setToolActive('Pan', panOptions);
+    const leftMouseToolsWithAnotherButtonMask = this.props.availableTools.filter(
+      tool => {
+        if (!tool.mouseButtonMasks) {
+          return;
+        }
 
-    // zoom is the default tool for right mouse button
-    const isZoomToolActive = activeTool === 'Zoom';
-    const zoomOptions = {
-      mouseButtonMask: isZoomToolActive ? [1, 2] : [2],
-      isTouchActive: isZoomToolActive
-    };
-    this.cornerstoneTools.setToolActive('Zoom', zoomOptions);
+        return (
+          tool.mouseButtonMasks.includes(1) && tool.mouseButtonMasks.length > 1
+        );
+      }
+    );
+
+    try {
+      setToolsPassive(this.cornerstoneTools, leftMouseToolNames);
+    } catch (error) {
+      // TODO: Looks like the Brush tool is calling updateImage, which is
+      // failing because the image is not available yet in the enabledElement?
+      // (Although I would have expected it to be there after displayImage is
+      // called...)
+      console.warn(error);
+    }
+
+    // This turns e.g. the Zoom and Pan tools back to active, if they
+    // were bound to e.g. [1,2] or [1,4]
+    leftMouseToolsWithAnotherButtonMask.forEach(tool => {
+      const mouseButtonMask = tool.mouseButtonMasks.filter(mask => mask !== 1);
+      this.cornerstoneTools.setToolActive(tool.name, {
+        mouseButtonMask
+      });
+    });
 
     this.cornerstoneTools.setToolActive(activeTool, {
       mouseButtonMask: 1,
@@ -667,13 +645,13 @@ class CornerstoneViewport extends Component {
     const stackData = this.cornerstoneTools.getToolState(element, 'stack');
     const stack = stackData.data[0];
 
-    this.hideExtraButtons();
-
     this.setState({
       stack
     });
 
     /*
+    TODO: call this, but debounce it
+
     Temporarily removed because it didn't seem to be performing well
     if (this.props.setViewportSpecificData) {
       this.props.setViewportSpecificData({ stack });
@@ -697,81 +675,22 @@ class CornerstoneViewport extends Component {
 
   doneLoadingHandler = () => {
     clearTimeout(this.loadHandlerTimeout);
+
     this.setState({
       isLoading: false
     });
   };
 
-  onMeasurementAddedOrRemoved = () => {
-    console.log('onMeasurementAddedOrRemoved');
+  onMeasurementAddedOrRemoved = event => {
     if (this.props.onMeasurementsAddedOrRemoved) {
       this.props.onMeasurementsAddedOrRemoved(event);
     }
-    /* const { toolType, measurementData } = event.detail;
-
-    // TODO: Pass in as prop?
-    const toolsOfInterest = ['Bidirectional'];
-
-    this.hideExtraButtons();
-
-    if (toolsOfInterest.includes(toolType)) {
-      const image = cornerstone.getImage(this.element);
-      const viewport = cornerstone.getViewport(this.element);
-
-      const type = {
-        cornerstonetoolsmeasurementadded: 'added',
-        cornerstonetoolsmeasurementremoved: 'removed'
-      };
-      const action = type[event.type];
-
-      if (action === 'added') {
-        measurementData._id = guid();
-        measurementData.viewport = cloneDeep(viewport);
-      }
-
-      this.props.measurementsAddedOrRemoved(
-        action,
-        image.imageId,
-        toolType,
-        measurementData
-      );
-    }*/
   };
 
   onMeasurementModified = event => {
-    console.log('onMeasurementModified');
     if (this.props.onMeasurementModified) {
       this.props.onMeasurementModified(event);
     }
-    /* const { toolType, measurementData } = event.detail;
-
-    // TODO: Pass in as prop?
-    const toolsOfInterest = ['Bidirectional'];
-
-    this.hideExtraButtons();
-
-    if (toolsOfInterest.includes(toolType)) {
-      const image = cornerstone.getImage(this.element);
-      const viewport = cornerstone.getViewport(this.element);
-
-      const type = {
-        cornerstonetoolsmeasurementadded: 'added',
-        cornerstonetoolsmeasurementremoved: 'removed'
-      };
-      const action = type[event.type];
-
-      if (action === 'added') {
-        measurementData._id = guid();
-        measurementData.viewport = cloneDeep(viewport);
-      }
-
-      this.props.measurementsAddedOrRemoved(
-        action,
-        image.imageId,
-        toolType,
-        measurementData
-      );
-    }*/
   };
 
   setViewportActive = () => {
@@ -831,18 +750,8 @@ class CornerstoneViewport extends Component {
     }*/
 
     // TODO: For some reason this isn't working?
+    debugger;
     this.scrollToIndex(this.element, value);
-  };
-
-  hideExtraButtons = () => {
-    if (this.state.bidirectionalAddLabelShow === true) {
-      this.setState({
-        bidirectionalAddLabelShow: false
-      });
-    }
-    this.setState({
-      toolContextMenuData: null
-    });
   };
 }
 

@@ -1,5 +1,4 @@
-import { PureComponent } from 'react';
-import React from 'react';
+import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import './ImageScrollbar.styl';
 

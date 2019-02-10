@@ -43,6 +43,12 @@ function getImageDimensions(imageId) {
 }*/
 
 class ViewportOverlay extends PureComponent {
+  static propTypes = {
+    viewport: PropTypes.object.isRequired,
+    imageId: PropTypes.string.isRequired,
+    stack: PropTypes.object.isRequired
+  };
+
   render() {
     const zoom = this.props.viewport.scale * 100;
     const imageId = this.props.imageId;
@@ -194,11 +200,5 @@ class ViewportOverlay extends PureComponent {
     return <div className="ViewportOverlay">{normal}</div>;
   }
 }
-
-ViewportOverlay.propTypes = {
-  viewport: PropTypes.object.isRequired,
-  imageId: PropTypes.string.isRequired,
-  stack: PropTypes.object.isRequired
-};
 
 export default ViewportOverlay;
