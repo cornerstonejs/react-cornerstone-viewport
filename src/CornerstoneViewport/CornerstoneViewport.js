@@ -81,6 +81,8 @@ class CornerstoneViewport extends Component {
     onMeasurementsAddedOrRemoved: PropTypes.func,
     onMeasurementModified: PropTypes.func,
     onDoubleClick: PropTypes.func,
+    onRightClick: PropTypes.func,
+    onTouchPress: PropTypes.func,
     setViewportActive: PropTypes.func,
     setViewportSpecificData: PropTypes.func,
     clearViewportSpecificData: PropTypes.func
@@ -145,6 +147,7 @@ class CornerstoneViewport extends Component {
         <div
           className="viewport-element"
           onContextMenu={this.onContextMenu}
+          data-viewport-index={this.props.viewportIndex}
           ref={input => {
             this.element = input;
           }}
@@ -172,14 +175,6 @@ class CornerstoneViewport extends Component {
           value={this.state.stack.currentImageIdIndex}
           height={this.state.viewportHeight}
         />
-        {/*<ToolContextMenu
-            toolContextMenuData={
-                    this.state.toolContextMenuData
-                }
-            onClose={
-                    this.onCloseToolContextMenu
-                }
-            />*/}
         {this.props.children}
       </div>
     );
@@ -707,34 +702,22 @@ class CornerstoneViewport extends Component {
     this.setViewportActive();
 
     if (event.detail.event.which === 3) {
-      this.setState({
-        toolContextMenuData: {
-          eventData: event.detail,
-          isTouchEvent: false
-        }
-      });
+      if (this.props.onRightClick) {
+        this.props.onRightClick(event);
+      }
     }
   };
 
   onTouchPress = event => {
     this.setViewportActive();
 
-    this.setState({
-      toolContextMenuData: {
-        eventData: event.detail,
-        isTouchEvent: true
-      }
-    });
+    if (this.props.onTouchPress) {
+      this.props.onTouchPress(event);
+    }
   };
 
   onTouchStart = () => {
     this.setViewportActive();
-  };
-
-  onCloseToolContextMenu = () => {
-    this.setState({
-      toolContextMenuData: null
-    });
   };
 
   imageSliderOnInputCallback = value => {
