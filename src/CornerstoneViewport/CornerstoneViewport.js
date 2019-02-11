@@ -15,11 +15,11 @@ function setToolsPassive(cornerstoneTools, tools) {
   });
 }
 
-function initializeTools(cornerstoneTools, tools) {
+function initializeTools(cornerstoneTools, tools, element) {
   Array.from(tools).forEach(tool => {
-    const apiTool = cornerstoneTools[`${tool.name}Tool`];
+    const apiTool = cornerstoneTools[`${tool.name}Tool`] || tool.apiTool;
     if (apiTool) {
-      cornerstoneTools.addTool(apiTool, tool.configuration);
+      cornerstoneTools.addToolForElement(element, apiTool, tool.configuration);
     } else {
       throw new Error(`Tool not found: ${tool.name}Tool`);
     }
@@ -343,7 +343,11 @@ class CornerstoneViewport extends Component {
         if (this.props.enableStackPrefetch) {
           this.cornerstoneTools.stackPrefetch.enable(this.element);
         }
-        initializeTools(this.cornerstoneTools, this.props.availableTools);
+        initializeTools(
+          this.cornerstoneTools,
+          this.props.availableTools,
+          element
+        );
 
         this.setActiveTool(this.props.activeTool);
 
