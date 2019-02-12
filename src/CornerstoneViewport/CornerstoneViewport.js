@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import debounce from 'lodash.debounce';
+import ReactResizeDetector from 'react-resize-detector';
 import ImageScrollbar from '../ImageScrollbar/ImageScrollbar.js';
 import ViewportOverlay from '../ViewportOverlay/ViewportOverlay.js';
 import LoadingIndicator from '../LoadingIndicator/LoadingIndicator.js';
@@ -143,6 +144,11 @@ class CornerstoneViewport extends Component {
 
     return (
       <div className={className}>
+        <ReactResizeDetector
+          handleWidth
+          handleHeight
+          onResize={this.onWindowResize}
+        />
         <div
           className="viewport-element"
           onContextMenu={this.onContextMenu}

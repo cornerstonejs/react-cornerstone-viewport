@@ -8,28 +8,33 @@ import svgr from '@svgr/rollup'
 
 import pkg from './package.json'
 
+const globals = { 
+    'react': 'React',
+    'react-dom': 'ReactDOM',
+    'react-resize-detector': 'ReactResizeDetector'
+}
+
 export default {
   input: 'src/index.js',
   output: [
     {
       file: pkg.main,
       format: 'cjs',
-      sourcemap: true
+      sourcemap: true,
+      globals
     },
     {
       file: pkg.browser,
       format: 'umd',
       name: 'react-cornerstone-viewport',
       sourcemap: true,
-      globals: {
-        'react': 'React',
-        'react-dom': 'ReactDOM'
-      }
+      globals
     },
     {
       file: pkg.module,
       format: 'es',
-      sourcemap: true
+      sourcemap: true,
+      globals
     }
   ],
   plugins: [
@@ -47,5 +52,5 @@ export default {
     resolve(),
     commonjs()
   ],
-  external: ['cornerstone-core', 'cornerstone-math', 'cornerstone-tools', 'cornerstone-wado-image-loader', 'dicom-parser', 'hammerjs']
+  external: ['cornerstone-core', 'cornerstone-math', 'cornerstone-tools', 'cornerstone-wado-image-loader', 'dicom-parser', 'hammerjs', 'react-resize-detector']
 }
