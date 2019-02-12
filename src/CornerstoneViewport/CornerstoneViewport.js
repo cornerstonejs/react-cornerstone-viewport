@@ -75,11 +75,10 @@ class CornerstoneViewport extends Component {
     enableStackPrefetch: PropTypes.bool.isRequired,
     cineToolData: PropTypes.object.isRequired,
     availableTools: PropTypes.array.isRequired,
+    onMeasurementsChanged: PropTypes.func,
     isActive: PropTypes.bool.isRequired,
     layout: PropTypes.object,
     children: PropTypes.node,
-    onMeasurementsAddedOrRemoved: PropTypes.func,
-    onMeasurementModified: PropTypes.func,
     onDoubleClick: PropTypes.func,
     onRightClick: PropTypes.func,
     onTouchPress: PropTypes.func,
@@ -227,7 +226,7 @@ class CornerstoneViewport extends Component {
       {
         eventTarget: element,
         eventType: this.cornerstoneTools.EVENTS.MEASUREMENT_ADDED,
-        handler: this.onMeasurementAddedOrRemoved
+        handler: this.onMeasurementAdded
       },
       {
         eventTarget: element,
@@ -237,7 +236,12 @@ class CornerstoneViewport extends Component {
       {
         eventTarget: element,
         eventType: this.cornerstoneTools.EVENTS.MEASUREMENT_REMOVED,
-        handler: this.onMeasurementAddedOrRemoved
+        handler: this.onMeasurementRemoved
+      },
+      {
+        eventTarget: element,
+        eventType: this.cornerstoneTools.EVENTS.MEASUREMENT_MODIFIED,
+        handler: this.onMeasurementModified
       },
       {
         eventTarget: element,
@@ -680,15 +684,21 @@ class CornerstoneViewport extends Component {
     });
   };
 
-  onMeasurementAddedOrRemoved = event => {
-    if (this.props.onMeasurementsAddedOrRemoved) {
-      this.props.onMeasurementsAddedOrRemoved(event);
+  onMeasurementAdded = event => {
+    if (this.props.onMeasurementsChanged) {
+      this.props.onMeasurementsChanged(event, 'added');
+    }
+  };
+
+  onMeasurementRemoved = event => {
+    if (this.props.onMeasurementsChanged) {
+      this.props.onMeasurementsChanged(event, 'removed');
     }
   };
 
   onMeasurementModified = event => {
-    if (this.props.onMeasurementModified) {
-      this.props.onMeasurementModified(event);
+    if (this.props.onMeasurementsChanged) {
+      this.props.onMeasurementsChanged(event, 'modified');
     }
   };
 
