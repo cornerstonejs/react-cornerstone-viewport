@@ -11,7 +11,13 @@ import pkg from './package.json'
 const globals = { 
     'react': 'React',
     'react-dom': 'ReactDOM',
-    'react-resize-detector': 'ReactResizeDetector'
+    'react-resize-detector': 'ReactResizeDetector',
+    'cornerstone-core': 'cornerstone',
+    'cornerstone-math': 'cornerstoneMath',
+    'cornerstone-tools': 'cornerstoneTools',
+    'cornerstone-wado-image-loader': 'cornerstoneWADOImageLoader',
+    'dicom-parser': 'dicomParser',
+    'hammerjs': 'Hammer',
 }
 
 export default {

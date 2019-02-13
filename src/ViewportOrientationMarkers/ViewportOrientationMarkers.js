@@ -1,6 +1,8 @@
 import { PureComponent } from 'react';
 import React from 'react';
 import PropTypes from 'prop-types';
+import cornerstone from 'cornerstone-core';
+import cornerstoneTools from 'cornerstone-tools';
 import './ViewportOrientationMarkers.styl';
 
 /**
@@ -10,12 +12,7 @@ import './ViewportOrientationMarkers.styl';
  * @param imageId The Cornerstone ImageId
  * @param viewport The current viewport
  */
-export function getOrientationMarkers(
-  imageId,
-  viewport,
-  cornerstone,
-  cornerstoneTools
-) {
+export function getOrientationMarkers(imageId, viewport) {
   const imagePlane = cornerstone.metaData.get('imagePlane', imageId);
   if (!imagePlane || !imagePlane.rowCosines || !imagePlane.columnCosines) {
     return;
@@ -82,13 +79,9 @@ class ViewportOrientationMarkers extends PureComponent {
   };
 
   render() {
-    const { imageId, viewport, cornerstone, cornerstoneTools } = this.props;
-    const markers = getOrientationMarkers(
-      imageId,
-      viewport,
-      cornerstone,
-      cornerstoneTools
-    );
+    const { imageId, viewport } = this.props;
+    const markers = getOrientationMarkers(imageId, viewport);
+
     if (!markers) {
       return '';
     }
