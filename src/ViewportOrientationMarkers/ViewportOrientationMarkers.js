@@ -80,6 +80,10 @@ class ViewportOrientationMarkers extends PureComponent {
 
   render() {
     const { imageId, viewport } = this.props;
+    if (!imageId) {
+      return null;
+    }
+
     const markers = getOrientationMarkers(imageId, viewport);
 
     if (!markers) {

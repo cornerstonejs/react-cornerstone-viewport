@@ -160,11 +160,13 @@ class CornerstoneViewport extends Component {
 
     return (
       <div className={className}>
-        <ReactResizeDetector
-          handleWidth
-          handleHeight
-          onResize={this.onWindowResize}
-        />
+        {ReactResizeDetector && (
+          <ReactResizeDetector
+            handleWidth
+            handleHeight
+            onResize={this.onWindowResize}
+          />
+        )}
         <div
           className="viewport-element"
           onContextMenu={this.onContextMenu}

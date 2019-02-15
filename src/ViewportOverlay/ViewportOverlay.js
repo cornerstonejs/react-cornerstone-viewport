@@ -45,8 +45,12 @@ class ViewportOverlay extends PureComponent {
   };
 
   render() {
-    const zoom = this.props.viewport.scale * 100;
     const imageId = this.props.imageId;
+    if (!imageId) {
+      return null;
+    }
+
+    const zoom = this.props.viewport.scale * 100;
     const seriesMetadata = cornerstone.metaData.get(
       'generalSeriesModule',
       imageId

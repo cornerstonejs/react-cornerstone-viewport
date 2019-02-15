@@ -57,6 +57,5 @@ export default {
     }),
     resolve(),
     commonjs()
-  ],
-  external: ['cornerstone-core', 'cornerstone-math', 'cornerstone-tools', 'cornerstone-wado-image-loader', 'dicom-parser', 'hammerjs', 'react-resize-detector']
+  ]
 }
