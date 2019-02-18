@@ -32,7 +32,170 @@ function initializeTools(cornerstoneTools, tools, element) {
   });
 }
 
+/**
+ *
+ *
+ * ```js
+   const exampleData = {
+      stack: {
+        currentImageIdIndex: 0,
+        imageIds: [
+          'dicomweb://s3.amazonaws.com/lury/PTCTStudy/1.3.6.1.4.1.25403.52237031786.3872.20100510032220.11.dcm',
+          'dicomweb://s3.amazonaws.com/lury/PTCTStudy/1.3.6.1.4.1.25403.52237031786.3872.20100510032220.12.dcm'
+        ]
+      }
+    };
+
+   return (<CornerstoneViewport viewportData={exampleData} />);
+ * ```
+ */
 class CornerstoneViewport extends Component {
+  static propTypes = {
+    /**
+     * The active CornerstoneTools toolId.
+     *
+     * Note: This tool must be present in `availableTools`.
+     */
+    activeTool: PropTypes.string.isRequired,
+    /**
+     * The input data to be displayed in this Cornerstone Element
+     */
+    viewportData: PropTypes.object.isRequired,
+    /**
+     * Any input options to be passed to Cornerstone Core when enabling
+     * the element. These will be passed in as follows:
+     *
+     * ```js
+     * cornerstone.enable(element, cornerstoneOptions);
+     * ```
+     */
+    cornerstoneOptions: PropTypes.object.isRequired,
+    /**
+     * Whether or not CornerstoneTools' stack prefetching should be
+     * enabled for this element. This can be toggled on/off from the
+     * application level to allow for the application to pause prefetching
+     * on elements that the user is not currently interacting with.
+     */
+    enableStackPrefetch: PropTypes.bool.isRequired,
+    /**
+     * An object describing the CINE toolData to be used by this
+     * element.
+     *
+     * - isPlaying: Boolean describing whether or not this element
+     * should currently be playing a CINE loop
+     * - cineFrameRate: Number describing the frames per second that
+     * the element should currently be playing at
+     */
+    cineToolData: PropTypes.object.isRequired,
+    /**
+     * An array of objects detailing the available Cornerstone Tools
+     * to be used by this component.
+     *
+     * The format for the tools is:
+     *
+     * - name: The CornerstoneTools toolId
+     * - mouseButtonMasks: An array of mouse button masks that the tool
+     * will use. Using [1] indicates that the tool is left-button only.
+     * - configuration: Any configuration options which should be passed
+     * to the tool when `cornerstoneTools.addToolForElement` is called.
+     */
+    availableTools: PropTypes.array.isRequired,
+    /**
+     * Callback function to handle CornerstoneTools measurement changes.
+     * This callback fires when measurements are added, modified, or removed.
+     *
+     * The callback is called with two arguments:
+     *
+     * - `event`: the CornerstoneTools event
+     * - `type`: the type of the event, 'added', 'modified', or 'removed'
+     */
+    onMeasurementsChanged: PropTypes.func,
+    /**
+     * Whether or not the Component is `active` at the application level.
+     * This variable is related to the `setViewportActive` callback prop.
+     * If `isActive` is true, `setViewportActive` will not be called when
+     * interacting with the component.
+     */
+    isActive: PropTypes.bool.isRequired,
+    /**
+     * An arbitrary Object used to describe the layout within which this
+     * component is contained. The purpose of the prop is to let the
+     * CornerstoneViewport component know when it needs to resize itself
+     * to fit width / height changes to the parent div.
+     *
+     * In future we may want to remove this in favour of react-resize-detector
+     */
+    layout: PropTypes.object,
+    /**
+     * One or more child React components to be rendered within this component.
+     */
+    children: PropTypes.node,
+    /**
+     * Function callback to be called on the following events:
+     *
+     * - cornerstoneTools.EVENTS.DOUBLE_CLICK
+     * - cornerstoneTools.EVENTS.DOUBLE_TAP
+     *
+     * Callback is provided a single argument: the `event` object.
+     */
+    onDoubleClick: PropTypes.func,
+    /**
+     * Function callback to be called on the following events,
+     * if `event.detail.event.which === 3`:
+     *
+     * - cornerstoneTools.EVENTS.MOUSE_CLICK
+     * - cornerstoneTools.EVENTS.MOUSE_DOWN
+     *
+     * Callback is provided a single argument: the `event` object.
+     */
+    onRightClick: PropTypes.func,
+    /**
+     * Function callback to be called on the following events:
+     * - cornerstoneTools.EVENTS.TOUCH_PRESS
+     *
+     * Callback is provided a single argument: the `event` object.
+     */
+    onTouchPress: PropTypes.func,
+    /**
+     * An optional callback function to be used to set this viewport
+     * to an active state.
+     *
+     * If it exists, it is called on any interaction (mousewheel,
+     * touch event, or mouse event) if the prop `isActive` is not `true`.
+     *
+     * This function is called with no arguments.
+     */
+    setViewportActive: PropTypes.func,
+    /**
+     * An optional callback function used to store viewport data into the
+     * application-level state management store (e.g. Redux). This function
+     * is called when the viewport's `stack` data changes.
+     *
+     * For example, if a CINE clip is playing, the
+     * setViewportSpecificData function will be called to update the application-level
+     * store with the details of the current stack when the CINE clip is stopped.
+     * This allows the application-level to more easily change the stack tool data
+     * from outside of the component, e.g. to step to the next frame.
+     */
+    setViewportSpecificData: PropTypes.func,
+    /**
+     * An optional callback function used to clear any application-level store data
+     * - This function is called with no arguments.
+     * - This function is called on componentWillUnmount.
+     */
+    clearViewportSpecificData: PropTypes.func,
+    /**
+     * An optional React component which will be rendered on top of this component.
+     *
+     * This can be used to customize the DICOM tags displayed in each corner of the
+     * viewport.
+     */
+    viewportOverlayComponent: PropTypes.oneOfType([
+      PropTypes.string,
+      PropTypes.func
+    ])
+  };
+
   static defaultProps = {
     activeTool: 'Wwwc',
     viewportData: {
@@ -71,29 +234,6 @@ class CornerstoneViewport extends Component {
       { name: 'StackScrollMultiTouch' }
     ],
     viewportOverlayComponent: ViewportOverlay
-  };
-
-  static propTypes = {
-    activeTool: PropTypes.string.isRequired,
-    viewportData: PropTypes.object.isRequired,
-    cornerstoneOptions: PropTypes.object.isRequired,
-    enableStackPrefetch: PropTypes.bool.isRequired,
-    cineToolData: PropTypes.object.isRequired,
-    availableTools: PropTypes.array.isRequired,
-    onMeasurementsChanged: PropTypes.func,
-    isActive: PropTypes.bool.isRequired,
-    layout: PropTypes.object,
-    children: PropTypes.node,
-    onDoubleClick: PropTypes.func,
-    onRightClick: PropTypes.func,
-    onTouchPress: PropTypes.func,
-    setViewportActive: PropTypes.func,
-    setViewportSpecificData: PropTypes.func,
-    clearViewportSpecificData: PropTypes.func,
-    viewportOverlayComponent: PropTypes.oneOfType([
-      PropTypes.string,
-      PropTypes.func
-    ])
   };
 
   static loadIndicatorDelay = 45;

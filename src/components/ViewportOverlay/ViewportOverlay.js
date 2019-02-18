@@ -3,7 +3,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import cornerstone from 'cornerstone-core';
 import dicomParser from 'dicom-parser';
-import { helpers } from '../helpers/index.js';
+import { helpers } from '../../helpers/index.js';
 import './ViewportOverlay.styl';
 
 const {
