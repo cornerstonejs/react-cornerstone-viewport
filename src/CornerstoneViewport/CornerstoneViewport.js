@@ -491,7 +491,8 @@ class CornerstoneViewport extends Component {
         currentStack.imageIds = stack.imageIds;
       }
 
-      const imageId = currentStack.imageIds[currentImageIdIndex];
+      const imageId =
+        currentStack.imageIds[currentImageIdIndex] || currentStack.imageIds[0];
 
       const viewportSpecificData = {
         displaySetInstanceUid,
@@ -533,6 +534,52 @@ class CornerstoneViewport extends Component {
 
         cornerstoneTools.stackPrefetch.enable(this.element);
       });
+    }
+
+    if (
+      this.state.stack.currentImageIdIndex !==
+        this.props.viewportData.stack.currentImageIdIndex &&
+      prevProps.viewportData.stack.currentImageIdIndex !==
+        this.props.viewportData.stack.currentImageIdIndex
+    ) {
+      const {
+        displaySetInstanceUid,
+        studyInstanceUid
+      } = this.props.viewportData;
+
+      const currentImageIdIndex = this.props.viewportData.stack
+        .currentImageIdIndex;
+
+      const stack = this.props.viewportData.stack;
+      const stackData = cornerstoneTools.getToolState(this.element, 'stack');
+      let currentStack = stackData && stackData.data[0];
+
+      if (!currentStack) {
+        currentStack = {
+          currentImageIdIndex,
+          imageIds: stack.imageIds
+        };
+
+        cornerstoneTools.addStackStateManager(this.element, ['stack']);
+        cornerstoneTools.addToolState(this.element, 'stack', currentStack);
+      } else {
+        scrollToIndex(this.element, currentImageIdIndex);
+
+        // TODO: we should make something like setToolState by an ID
+        currentStack.currentImageIdIndex = currentImageIdIndex;
+        currentStack.imageIds = stack.imageIds;
+      }
+
+      const imageId = currentStack.imageIds[currentImageIdIndex];
+
+      const viewportSpecificData = {
+        displaySetInstanceUid,
+        studyInstanceUid,
+        stack,
+        imageId
+      };
+
+      this.setState(viewportSpecificData);
     }
 
     if (this.props.activeTool !== prevProps.activeTool) {
