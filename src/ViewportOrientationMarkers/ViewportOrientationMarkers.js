@@ -13,7 +13,7 @@ import './ViewportOrientationMarkers.styl';
  * @param viewport The current viewport
  */
 export function getOrientationMarkers(imageId, viewport) {
-  const imagePlane = cornerstone.metaData.get('imagePlane', imageId);
+  const imagePlane = cornerstone.metaData.get('imagePlaneModule', imageId);
   if (!imagePlane || !imagePlane.rowCosines || !imagePlane.columnCosines) {
     return;
   }
