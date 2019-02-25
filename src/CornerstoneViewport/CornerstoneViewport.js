@@ -87,6 +87,7 @@ class CornerstoneViewport extends Component {
     onDoubleClick: PropTypes.func,
     onRightClick: PropTypes.func,
     onTouchPress: PropTypes.func,
+    onViewportInteraction: PropTypes.func,
     setViewportActive: PropTypes.func,
     setViewportSpecificData: PropTypes.func,
     clearViewportSpecificData: PropTypes.func,
@@ -215,6 +216,10 @@ class CornerstoneViewport extends Component {
   };
 
   onNewImage = event => {
+    if (this.props.onViewportInteraction) {
+      this.props.onViewportInteraction();
+    }
+
     this.setState({
       imageId: event.detail.image.imageId
     });
@@ -711,6 +716,10 @@ class CornerstoneViewport extends Component {
   };
 
   onMouseClick = event => {
+    if (this.props.onViewportInteraction) {
+      this.props.onViewportInteraction();
+    }
+
     this.setViewportActive();
 
     if (event.detail.event.which === 3) {
@@ -721,6 +730,10 @@ class CornerstoneViewport extends Component {
   };
 
   onTouchPress = event => {
+    if (this.props.onViewportInteraction) {
+      this.props.onViewportInteraction();
+    }
+
     this.setViewportActive();
 
     if (this.props.onTouchPress) {
@@ -729,6 +742,10 @@ class CornerstoneViewport extends Component {
   };
 
   onTouchStart = () => {
+    if (this.props.onViewportInteraction) {
+      this.props.onViewportInteraction();
+    }
+
     this.setViewportActive();
   };
 
