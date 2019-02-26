@@ -87,7 +87,7 @@ class CornerstoneViewport extends Component {
     onDoubleClick: PropTypes.func,
     onRightClick: PropTypes.func,
     onTouchPress: PropTypes.func,
-    onViewportInteraction: PropTypes.func,
+    resetLabellingAndContextMenu: PropTypes.func,
     setViewportActive: PropTypes.func,
     setViewportSpecificData: PropTypes.func,
     clearViewportSpecificData: PropTypes.func,
@@ -216,8 +216,8 @@ class CornerstoneViewport extends Component {
   };
 
   onNewImage = event => {
-    if (this.props.onViewportInteraction) {
-      this.props.onViewportInteraction();
+    if (this.props.resetLabellingAndContextMenu) {
+      this.props.resetLabellingAndContextMenu();
     }
 
     this.setState({
@@ -716,8 +716,8 @@ class CornerstoneViewport extends Component {
   };
 
   onMouseClick = event => {
-    if (this.props.onViewportInteraction) {
-      this.props.onViewportInteraction();
+    if (this.props.resetLabellingAndContextMenu) {
+      this.props.resetLabellingAndContextMenu();
     }
 
     this.setViewportActive();
@@ -730,8 +730,8 @@ class CornerstoneViewport extends Component {
   };
 
   onTouchPress = event => {
-    if (this.props.onViewportInteraction) {
-      this.props.onViewportInteraction();
+    if (this.props.resetLabellingAndContextMenu) {
+      this.props.resetLabellingAndContextMenu();
     }
 
     this.setViewportActive();
@@ -742,8 +742,8 @@ class CornerstoneViewport extends Component {
   };
 
   onTouchStart = () => {
-    if (this.props.onViewportInteraction) {
-      this.props.onViewportInteraction();
+    if (this.props.resetLabellingAndContextMenu) {
+      this.props.resetLabellingAndContextMenu();
     }
 
     this.setViewportActive();
