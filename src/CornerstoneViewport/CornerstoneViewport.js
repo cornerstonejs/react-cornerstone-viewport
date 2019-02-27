@@ -90,7 +90,6 @@ class CornerstoneViewport extends Component {
     onTouchPress: PropTypes.func,
     onNewImage: PropTypes.func,
     onTouchStart: PropTypes.func,
-    resetLabellingAndContextMenu: PropTypes.func,
     setViewportActive: PropTypes.func,
     setViewportSpecificData: PropTypes.func,
     clearViewportSpecificData: PropTypes.func,
