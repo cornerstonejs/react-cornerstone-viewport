@@ -86,6 +86,7 @@ class CornerstoneViewport extends Component {
     children: PropTypes.node,
     onDoubleClick: PropTypes.func,
     onRightClick: PropTypes.func,
+    onMouseClick: PropTypes.func,
     onTouchPress: PropTypes.func,
     onNewImage: PropTypes.func,
     onTouchStart: PropTypes.func,
@@ -723,6 +724,10 @@ class CornerstoneViewport extends Component {
     if (event.detail.event.which === 3) {
       if (this.props.onRightClick) {
         this.props.onRightClick(event);
+      }
+    } else {
+      if (this.props.onMouseClick) {
+        this.props.onMouseClick(event);
       }
     }
   };
