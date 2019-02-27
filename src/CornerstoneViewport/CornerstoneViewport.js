@@ -86,7 +86,10 @@ class CornerstoneViewport extends Component {
     children: PropTypes.node,
     onDoubleClick: PropTypes.func,
     onRightClick: PropTypes.func,
+    onMouseClick: PropTypes.func,
     onTouchPress: PropTypes.func,
+    onNewImage: PropTypes.func,
+    onTouchStart: PropTypes.func,
     setViewportActive: PropTypes.func,
     setViewportSpecificData: PropTypes.func,
     clearViewportSpecificData: PropTypes.func,
@@ -220,6 +223,10 @@ class CornerstoneViewport extends Component {
     this.setState({
       imageId: event.detail.image.imageId
     });
+
+    if (this.props.onNewImage) {
+      this.props.onNewImage(event);
+    }
   };
 
   componentDidMount() {
@@ -766,6 +773,10 @@ class CornerstoneViewport extends Component {
       if (this.props.onRightClick) {
         this.props.onRightClick(event);
       }
+    } else {
+      if (this.props.onMouseClick) {
+        this.props.onMouseClick(event);
+      }
     }
   };
 
@@ -779,6 +790,10 @@ class CornerstoneViewport extends Component {
 
   onTouchStart = () => {
     this.setViewportActive();
+
+    if (this.props.onTouchStart) {
+      this.props.onTouchStart(event);
+    }
   };
 
   imageSliderOnInputCallback = value => {
