@@ -15,15 +15,15 @@ const {
 } = helpers;
 
 function getCompression(imageId) {
-  const lossyImageCompression = cornerstone.metaData.get('x00282110', imageId);
-  const lossyImageCompressionRatio = cornerstone.metaData.get(
-    'x00282112',
+  const generalImageModule = cornerstone.metaData.get(
+    'generalImageModule',
     imageId
   );
-  const lossyImageCompressionMethod = cornerstone.metaData.get(
-    'x00282114',
-    imageId
-  );
+  const {
+    lossyImageCompression,
+    lossyImageCompressionRatio,
+    lossyImageCompressionMethod
+  } = generalImageModule;
 
   if (lossyImageCompression === '01' && lossyImageCompressionRatio !== '') {
     const compressionMethod = lossyImageCompressionMethod || 'Lossy: ';
@@ -63,13 +63,23 @@ class ViewportOverlay extends PureComponent {
       imagePlaneModule || {};
     const { seriesNumber, seriesDescription } = seriesMetadata || {};
 
-    const studyDate = cornerstone.metaData.get('x00080020', imageId);
-    const studyTime = cornerstone.metaData.get('x00080030', imageId);
-    const studyDescription = cornerstone.metaData.get('x00081030', imageId);
-    const patientName = cornerstone.metaData.get('x00100010', imageId);
-    const patientId = cornerstone.metaData.get('x00100020', imageId);
-    const instanceNumber = cornerstone.metaData.get('x00200013', imageId);
-    const frameTime = cornerstone.metaData.get('x00181063', imageId);
+    const generalStudyModule = cornerstone.metaData.get(
+      'generalStudyModule',
+      imageId
+    );
+    const { studyDate, studyTime, studyDescription } = generalStudyModule;
+
+    const patientModule = cornerstone.metaData.get('patientModule', imageId);
+    const { patientId, patientName } = patientModule;
+
+    const generalImageModule = cornerstone.metaData.get(
+      'generalImageModule',
+      imageId
+    );
+    const { instanceNumber } = generalImageModule;
+
+    const cineModule = cornerstone.metaData.get('cineModule', imageId);
+    const { frameTime } = cineModule;
 
     const frameRate = formatNumberPrecision(1000 / frameTime, 1);
     const compression = getCompression(imageId);
@@ -145,7 +155,7 @@ class ViewportOverlay extends PureComponent {
           </div>
           <div>{imageDimensions}</div>
           <div>{seriesDescription}</div>
-          <div>Zoom: ${formatNumberPrecision(zoom, 0)}%</div>
+          <div>Zoom: {formatNumberPrecision(zoom, 0)}%</div>
           <div className="compressionIndicator">{compression}</div>
           <div>{wwwc}</div>
         </div>
@@ -174,7 +184,7 @@ class ViewportOverlay extends PureComponent {
           </div>
           <div>{imageDimensions}</div>
           <div>{seriesDescription}</div>
-          <div>Zoom: ${formatNumberPrecision(zoom, 0)}%</div>
+          <div>Zoom: {formatNumberPrecision(zoom, 0)}%</div>
           <div className="compressionIndicator">{compression}</div>
           <div>{wwwc}</div>
         </div>
