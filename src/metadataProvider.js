@@ -2,6 +2,13 @@ import cornerstone from 'cornerstone-core';
 import cornerstoneWADOImageLoader from 'cornerstone-wado-image-loader';
 import dicomParser from 'dicom-parser';
 
+const {
+  getNumberString,
+  getNumberValue,
+  getNumberValues,
+  getValue
+} = cornerstoneWADOImageLoader.wadors.metaData;
+
 function wadoRsMetaDataProvider(type, imageId) {
   const metaData = cornerstoneWADOImageLoader.wadors.metaDataManager.get(
     imageId
@@ -26,6 +33,36 @@ function wadoRsMetaDataProvider(type, imageId) {
     metaData[typeCleaned].Value.length
   ) {
     return metaData[typeCleaned].Value[0];
+  }
+
+  if (type === 'generalImageModule') {
+    return {
+      instanceNumber: getNumberValue(metaData['00200013']),
+      lossyImageCompression: getValue(metaData['00282110']),
+      lossyImageCompressionRatio: getValue(metaData['00282112']),
+      lossyImageCompressionMethod: getValue(metaData['00282114'])
+    };
+  }
+
+  if (type === 'patientModule') {
+    return {
+      patientName: getValue(metaData['00100010']),
+      patientId: getValue(metaData['00100020'])
+    };
+  }
+
+  if (type === 'generalStudyModule') {
+    return {
+      studyDescription: getValue(metaData['00081030']),
+      studyDate: getValue(metaData['00080020']),
+      studyTime: getValue(metaData['00080030'])
+    };
+  }
+
+  if (type === 'cineModule') {
+    return {
+      frameTime: getNumberValue(metaData['00181063'])
+    };
   }
 }
 
