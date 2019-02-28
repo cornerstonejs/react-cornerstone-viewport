@@ -8015,10 +8015,10 @@ react-app-polyfill@^0.2.1:
     raf "3.4.1"
     whatwg-fetch "3.0.0"
 
-react-cornerstone-viewport@^0.1.14:
-  version "0.1.14"
-  resolved "https://registry.yarnpkg.com/react-cornerstone-viewport/-/react-cornerstone-viewport-0.1.14.tgz#297d004c3e746c476fc785336a928096f257e860"
-  integrity sha512-PUnrDsQujOKEDuXVZFuxX3d8I4sEYtbNeTrGk5HPeFZXccIx+KSUf+qU06CsJnpMu4FqgaeHGtMVKm3hJJRmvg==
+react-cornerstone-viewport@^0.1.21:
+  version "0.1.21"
+  resolved "https://registry.yarnpkg.com/react-cornerstone-viewport/-/react-cornerstone-viewport-0.1.21.tgz#6af0ab9a5c5384e5baf5d175ec846675d17bf177"
+  integrity sha512-lETYhekC2VawzVq9ZcZnavzgTE2mNeoB2Rh+H0HkMMyGBSl1ULxJvuZpm5KLPU00QujlbY8NKCe2rxKOhc0VZg==
   dependencies:
     lodash.debounce "^4.0.8"
     moment "^2.23.0"

@@ -15,10 +15,8 @@ const {
 } = helpers;
 
 function getCompression(imageId) {
-  const generalImageModule = cornerstone.metaData.get(
-    'generalImageModule',
-    imageId
-  );
+  const generalImageModule =
+    cornerstone.metaData.get('generalImageModule', imageId) || {};
   const {
     lossyImageCompression,
     lossyImageCompressionRatio,
@@ -51,34 +49,26 @@ class ViewportOverlay extends PureComponent {
     }
 
     const zoom = this.props.viewport.scale * 100;
-    const seriesMetadata = cornerstone.metaData.get(
-      'generalSeriesModule',
-      imageId
-    );
-    const imagePlaneModule = cornerstone.metaData.get(
-      'imagePlaneModule',
-      imageId
-    );
-    const { rows, columns, sliceThickness, sliceLocation } =
-      imagePlaneModule || {};
-    const { seriesNumber, seriesDescription } = seriesMetadata || {};
+    const seriesMetadata =
+      cornerstone.metaData.get('generalSeriesModule', imageId) || {};
+    const imagePlaneModule =
+      cornerstone.metaData.get('imagePlaneModule', imageId) || {};
+    const { rows, columns, sliceThickness, sliceLocation } = imagePlaneModule;
+    const { seriesNumber, seriesDescription } = seriesMetadata;
 
-    const generalStudyModule = cornerstone.metaData.get(
-      'generalStudyModule',
-      imageId
-    );
+    const generalStudyModule =
+      cornerstone.metaData.get('generalStudyModule', imageId) || {};
     const { studyDate, studyTime, studyDescription } = generalStudyModule;
 
-    const patientModule = cornerstone.metaData.get('patientModule', imageId);
+    const patientModule =
+      cornerstone.metaData.get('patientModule', imageId) || {};
     const { patientId, patientName } = patientModule;
 
-    const generalImageModule = cornerstone.metaData.get(
-      'generalImageModule',
-      imageId
-    );
+    const generalImageModule =
+      cornerstone.metaData.get('generalImageModule', imageId) || {};
     const { instanceNumber } = generalImageModule;
 
-    const cineModule = cornerstone.metaData.get('cineModule', imageId);
+    const cineModule = cornerstone.metaData.get('cineModule', imageId) || {};
     const { frameTime } = cineModule;
 
     const frameRate = formatNumberPrecision(1000 / frameTime, 1);
