@@ -21,6 +21,10 @@ function setToolsPassive(cornerstoneTools, tools) {
   });
 }
 
+function capitalizeFirstLetter(string) {
+  return string.charAt(0).toUpperCase() + string.slice(1);
+}
+
 function initializeTools(cornerstoneTools, tools, element) {
   Array.from(tools).forEach(tool => {
     const apiTool = cornerstoneTools[`${tool.name}Tool`] || tool.apiTool;
@@ -28,6 +32,13 @@ function initializeTools(cornerstoneTools, tools, element) {
       cornerstoneTools.addToolForElement(element, apiTool, tool.configuration);
     } else {
       throw new Error(`Tool not found: ${tool.name}Tool`);
+    }
+
+    if (tool.mode) {
+      cornerstoneTools[`setTool${capitalizeFirstLetter(tool.mode)}ForElement`](
+        element,
+        tool.name
+      );
     }
   });
 }
