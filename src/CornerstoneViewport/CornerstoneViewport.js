@@ -120,7 +120,7 @@ class CornerstoneViewport extends Component {
     this.state = {
       stack,
       displaySetInstanceUid: props.viewportData.displaySetInstanceUid,
-      imageId: stack.imageIds[0],
+      imageId: stack.imageIds[stack.currentImageIdIndex || 0],
       viewportHeight: '100%',
       isLoading: false,
       numImagesLoaded: 0,
