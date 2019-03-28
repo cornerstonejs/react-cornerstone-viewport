@@ -2,12 +2,7 @@ import cornerstone from 'cornerstone-core';
 import cornerstoneWADOImageLoader from 'cornerstone-wado-image-loader';
 import dicomParser from 'dicom-parser';
 
-const {
-  getNumberString,
-  getNumberValue,
-  getNumberValues,
-  getValue
-} = cornerstoneWADOImageLoader.wadors.metaData;
+const { getNumberValue, getValue } = cornerstoneWADOImageLoader.wadors.metaData;
 
 function wadoRsMetaDataProvider(type, imageId) {
   const metaData = cornerstoneWADOImageLoader.wadors.metaDataManager.get(
@@ -47,8 +42,14 @@ function wadoRsMetaDataProvider(type, imageId) {
   if (type === 'patientModule') {
     return {
       patientName: getValue(metaData['00100010']),
-      patientId: getValue(metaData['00100020'])
+      patientId: getValue(metaData['00100020']),
+      patientSex: getValue(metaData['00100040']),
+      patientBirthDate: getValue(metaData['00100030'])
     };
+  }
+
+  if (type === 'spacingBetweenSlices') {
+    return getValue(metaData['00180088']);
   }
 
   if (type === 'generalStudyModule') {
