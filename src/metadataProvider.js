@@ -56,7 +56,8 @@ function wadoRsMetaDataProvider(type, imageId) {
     return {
       studyDescription: getValue(metaData['00081030']),
       studyDate: getValue(metaData['00080020']),
-      studyTime: getValue(metaData['00080030'])
+      studyTime: getValue(metaData['00080030']),
+      accessionNumber: getValue(metaData['00080050'])
     };
   }
 
