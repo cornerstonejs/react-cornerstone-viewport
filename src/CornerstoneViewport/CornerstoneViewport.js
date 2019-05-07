@@ -59,6 +59,7 @@ class CornerstoneViewport extends Component {
       isPlaying: false,
       cineFrameRate: 24
     },
+    viewport: null,
     availableTools: [
       { name: 'Pan', mouseButtonMasks: [1, 4] },
       {
@@ -93,6 +94,7 @@ class CornerstoneViewport extends Component {
     availableTools: PropTypes.array.isRequired,
     onMeasurementsChanged: PropTypes.func,
     isActive: PropTypes.bool.isRequired,
+    viewport: PropTypes.object,
     layout: PropTypes.object,
     children: PropTypes.node,
     onDoubleClick: PropTypes.func,
@@ -125,7 +127,8 @@ class CornerstoneViewport extends Component {
       isLoading: false,
       numImagesLoaded: 0,
       error: null,
-      viewport: cornerstone.getDefaultViewport(null, undefined)
+      viewport:
+        props.viewport || cornerstone.getDefaultViewport(null, undefined)
     };
 
     const { loadHandlerManager } = cornerstoneTools;
@@ -351,8 +354,9 @@ class CornerstoneViewport extends Component {
           return;
         }
 
-        // Set Soft Tissue preset for all images by default
-        const viewport = cornerstone.getDefaultViewportForImage(element, image);
+        const viewport =
+          this.state.viewport ||
+          cornerstone.getDefaultViewportForImage(element, image);
 
         // Display the first image
         cornerstone.displayImage(element, image, viewport);
@@ -658,6 +662,16 @@ class CornerstoneViewport extends Component {
           this.props.cineToolData.cineFrameRate
         );
       }
+    }
+
+    // TODO? Should we shallow equality check these?
+    if (this.props.viewport !== prevProps.viewport) {
+      // Update the internal representation of the viewport parameters
+      this.setState({
+        viewport: this.props.viewport
+      });
+
+      cornerstone.setViewport(this.element, this.props.viewport);
     }
   }
 
