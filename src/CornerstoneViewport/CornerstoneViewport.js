@@ -354,9 +354,16 @@ class CornerstoneViewport extends Component {
           return;
         }
 
-        const viewport =
-          this.state.viewport ||
-          cornerstone.getDefaultViewportForImage(element, image);
+        const defaultViewport = cornerstone.getDefaultViewportForImage(
+          element,
+          image
+        );
+
+        const viewport = Object.assign(
+          {},
+          defaultViewport,
+          this.state.viewport
+        );
 
         // Display the first image
         cornerstone.displayImage(element, image, viewport);
@@ -667,11 +674,16 @@ class CornerstoneViewport extends Component {
     // TODO? Should we shallow equality check these?
     if (this.props.viewport !== prevProps.viewport) {
       // Update the internal representation of the viewport parameters
+      const viewport = Object.assign(
+        {},
+        this.state.viewport,
+        this.props.viewport
+      );
       this.setState({
-        viewport: this.props.viewport
+        viewport
       });
 
-      cornerstone.setViewport(this.element, this.props.viewport);
+      cornerstone.setViewport(this.element, viewport);
     }
   }
 
