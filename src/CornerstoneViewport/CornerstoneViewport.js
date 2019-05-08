@@ -579,6 +579,9 @@ class CornerstoneViewport extends Component {
       const currentImageIdIndex = this.props.viewportData.stack
         .currentImageIdIndex;
 
+      // TODO: Check if currentImageIdIndex is null, in this case,
+      // use the last index in the stack.
+
       const stack = this.props.viewportData.stack;
       const stackData = cornerstoneTools.getToolState(this.element, 'stack');
       let currentStack = stackData && stackData.data[0];
@@ -679,6 +682,29 @@ class CornerstoneViewport extends Component {
         this.state.viewport,
         this.props.viewport
       );
+
+      // Handle reset and fitToWindow cases
+      // If viewport.scale === null or voi === null, call getDefaultViewportForImage
+      // and use these values prior to calling setViewport
+      let defaultViewport;
+      if (viewport.voi === null) {
+        defaultViewport = cornerstone.getDefaultViewportForImage(
+          element,
+          image
+        );
+
+        viewport.voi = defaultViewport.voi;
+      }
+
+      if (viewport.scale === null) {
+        defaultViewport = cornerstone.getDefaultViewportForImage(
+          element,
+          image
+        );
+
+        viewport.scale = defaultViewport.scale;
+      }
+
       this.setState({
         viewport
       });
