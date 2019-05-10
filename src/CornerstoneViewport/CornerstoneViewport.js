@@ -677,7 +677,7 @@ class CornerstoneViewport extends Component {
     // TODO? Should we shallow equality check these?
     if (this.props.viewport !== prevProps.viewport) {
       // Update the internal representation of the viewport parameters
-      const viewport = Object.assign(
+      let viewport = Object.assign(
         {},
         this.state.viewport,
         this.props.viewport
@@ -686,13 +686,12 @@ class CornerstoneViewport extends Component {
       // Handle reset and fitToWindow cases
       // If viewport.scale === null or voi === null, call getDefaultViewportForImage
       // and use these values prior to calling setViewport
-      let defaultViewport;
-      if (viewport.voi === null) {
-        defaultViewport = cornerstone.getDefaultViewportForImage(
-          this.element,
-          cornerstone.getImage(this.element)
-        );
 
+      const defaultViewport = cornerstone.getDefaultViewportForImage(
+        this.element,
+        cornerstone.getImage(this.element)
+      );
+      if (viewport.voi === null) {
         viewport.voi = defaultViewport.voi;
       }
 
@@ -701,11 +700,6 @@ class CornerstoneViewport extends Component {
         const minimumScale = 0.05;
 
         if (viewport.zoomScale === 0) {
-          defaultViewport = cornerstone.getDefaultViewportForImage(
-            this.element,
-            cornerstone.getImage(this.element)
-          );
-
           viewport.scale = defaultViewport.scale;
         } else if (viewport.zoomScale < 0) {
           viewport.scale = Math.max(
@@ -718,6 +712,10 @@ class CornerstoneViewport extends Component {
             maximumScale
           );
         }
+      }
+
+      if (viewport.resetViewport) {
+        viewport = defaultViewport;
       }
 
       this.setState({
