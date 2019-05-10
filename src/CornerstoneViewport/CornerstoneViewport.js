@@ -689,8 +689,8 @@ class CornerstoneViewport extends Component {
       let defaultViewport;
       if (viewport.voi === null) {
         defaultViewport = cornerstone.getDefaultViewportForImage(
-          element,
-          image
+          this.element,
+          cornerstone.getImage(this.element)
         );
 
         viewport.voi = defaultViewport.voi;
@@ -698,8 +698,8 @@ class CornerstoneViewport extends Component {
 
       if (viewport.scale === null) {
         defaultViewport = cornerstone.getDefaultViewportForImage(
-          element,
-          image
+          this.element,
+          cornerstone.getImage(this.element)
         );
 
         viewport.scale = defaultViewport.scale;
