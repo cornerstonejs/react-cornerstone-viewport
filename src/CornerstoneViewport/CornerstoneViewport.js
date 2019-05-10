@@ -696,13 +696,28 @@ class CornerstoneViewport extends Component {
         viewport.voi = defaultViewport.voi;
       }
 
-      if (viewport.scale === null) {
-        defaultViewport = cornerstone.getDefaultViewportForImage(
-          this.element,
-          cornerstone.getImage(this.element)
-        );
+      if (viewport.zoomScale !== null) {
+        const maximumScale = 10;
+        const minimumScale = 0.05;
 
-        viewport.scale = defaultViewport.scale;
+        if (viewport.zoomScale === 0) {
+          defaultViewport = cornerstone.getDefaultViewportForImage(
+            this.element,
+            cornerstone.getImage(this.element)
+          );
+
+          viewport.scale = defaultViewport.scale;
+        } else if (viewport.zoomScale < 0) {
+          viewport.scale = Math.max(
+            viewport.scale + viewport.zoomScale,
+            minimumScale
+          );
+        } else {
+          viewport.scale = Math.min(
+            viewport.scale + viewport.zoomScale,
+            maximumScale
+          );
+        }
       }
 
       this.setState({
