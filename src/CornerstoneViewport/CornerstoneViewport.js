@@ -718,6 +718,13 @@ class CornerstoneViewport extends Component {
         viewport = defaultViewport;
       }
 
+      if (viewport.clearTools) {
+        const toolStateManager =
+          cornerstoneTools.globalImageIdSpecificToolStateManager;
+        toolStateManager.clear(this.element);
+        cornerstone.updateImage(this.element);
+      }
+
       this.setState({
         viewport
       });
