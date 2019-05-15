@@ -117,7 +117,8 @@ class CornerstoneViewport extends Component {
     super(props);
 
     // TODO: Allow viewport as a prop
-    const { stack } = props.viewportData;
+    const viewportDataStack = props.viewportData.stack;
+    const stack = Object.assign({}, viewportDataStack);
     this.state = {
       stack,
       displaySetInstanceUid: props.viewportData.displaySetInstanceUid,
@@ -148,6 +149,55 @@ class CornerstoneViewport extends Component {
       });
     }, 300);
   }
+
+  /**
+   * Updates viewportSpecificData only if new image is displayed for the same study and display set (stack scroll, cine play, etc.)
+   */
+  updateViewportSpecificData = () => {
+    if (!this.props.setViewportSpecificData) {
+      return;
+    }
+
+    const stateStack = this.state.stack;
+    const viewportDataStack = this.props.viewportData.stack;
+
+    // Skip if study or display set was changed
+    if (
+      stateStack.displaySetInstanceUid !==
+        viewportDataStack.displaySetInstanceUid ||
+      stateStack.studyInstanceUid !== viewportDataStack.studyInstanceUid
+    ) {
+      return;
+    }
+
+    // Skip if image was not changed
+    if (
+      stateStack.currentImageIdIndex ===
+        viewportDataStack.currentImageIdIndex &&
+      stateStack.sopInstanceUid === viewportDataStack.sopInstanceUid
+    ) {
+      return;
+    }
+
+    const stackData = cornerstoneTools.getToolState(this.element, 'stack');
+    const stack = stackData && stackData.data[0];
+
+    const imageId = stack.imageIds[stack.currentImageIdIndex];
+    const sopCommonModule = cornerstone.metaData.get(
+      'sopCommonModule',
+      imageId
+    );
+    if (!sopCommonModule) {
+      return;
+    }
+
+    this.props.setViewportSpecificData({
+      displaySetInstanceUid: stack.displaySetInstanceUid,
+      studyInstanceUid: stack.studyInstanceUid,
+      currentImageIdIndex: stack.currentImageIdIndex,
+      sopInstanceUid: sopCommonModule.sopInstanceUID
+    });
+  };
 
   render() {
     const isLoading = this.state.isLoading;
@@ -239,6 +289,8 @@ class CornerstoneViewport extends Component {
     if (this.props.onNewImage) {
       this.props.onNewImage(event);
     }
+
+    this.updateViewportSpecificData();
   };
 
   componentDidMount() {
@@ -530,20 +582,12 @@ class CornerstoneViewport extends Component {
       const imageId =
         currentStack.imageIds[currentImageIdIndex] || currentStack.imageIds[0];
 
-      const viewportSpecificData = {
+      this.setState({
         displaySetInstanceUid,
         studyInstanceUid,
         stack,
         imageId
-      };
-
-      this.setState(viewportSpecificData);
-
-      /*
-      Temporarily removed because it didn't seem to be performing well
-      if (this.props.setViewportSpecificData) {
-        this.props.setViewportSpecificData(viewportSpecificData);
-      }*/
+      });
 
       cornerstoneTools.stackPrefetch.disable(this.element);
       cornerstone.loadAndCacheImage(imageId).then(image => {
@@ -586,7 +630,8 @@ class CornerstoneViewport extends Component {
       const currentImageIdIndex = this.props.viewportData.stack
         .currentImageIdIndex;
 
-      const stack = this.props.viewportData.stack;
+      const viewportDataStack = this.props.viewportData.stack;
+      const stack = Object.assign({}, viewportDataStack);
       const stackData = cornerstoneTools.getToolState(this.element, 'stack');
       let currentStack = stackData && stackData.data[0];
 
@@ -608,14 +653,12 @@ class CornerstoneViewport extends Component {
 
       const imageId = currentStack.imageIds[currentImageIdIndex];
 
-      const viewportSpecificData = {
+      this.setState({
         displaySetInstanceUid,
         studyInstanceUid,
         stack,
         imageId
-      };
-
-      this.setState(viewportSpecificData);
+      });
     }
 
     if (this.props.activeTool !== prevProps.activeTool) {
@@ -651,13 +694,6 @@ class CornerstoneViewport extends Component {
         cornerstoneTools.playClip(this.element);
       } else {
         cornerstoneTools.stopClip(this.element);
-
-        const stackData = cornerstoneTools.getToolState(this.element, 'stack');
-        const stack = stackData.data[0];
-
-        if (this.props.setViewportSpecificData) {
-          this.props.setViewportSpecificData({ stack });
-        }
       }
     }
 
@@ -738,14 +774,6 @@ class CornerstoneViewport extends Component {
     this.setState({
       stack
     });
-
-    /*
-    TODO: call this, but debounce it
-
-    Temporarily removed because it didn't seem to be performing well
-    if (this.props.setViewportSpecificData) {
-      this.props.setViewportSpecificData({ stack });
-    }*/
   };
 
   onImageLoaded = () => {
@@ -827,11 +855,6 @@ class CornerstoneViewport extends Component {
 
   imageSliderOnInputCallback = value => {
     this.setViewportActive();
-    /*
-    Temporarily removed because it didn't seem to be performing well
-    if (this.props.setViewportSpecificData) {
-      this.props.setViewportSpecificData({ stack });
-    }*/
 
     scrollToIndex(this.element, value);
 
