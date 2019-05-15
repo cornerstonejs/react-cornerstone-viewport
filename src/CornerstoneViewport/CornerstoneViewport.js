@@ -323,12 +323,12 @@ class CornerstoneViewport extends Component {
 
     // Enable the DOM Element for use with Cornerstone
     const onElementEnabled = function(evt) {
-      const enabledElement = evt.detail;
+      const enabledElement = evt.detail.element;
       console.warn('no match');
       if (enabledElement === this.element) {
         console.warn('match');
         if (this.props.onElementEnabled) {
-          this.props.onElementEnabled(event);
+          this.props.onElementEnabled(evt);
         }
         cornerstone.events.removeEventListener(
           cornerstone.EVENTS.ELEMENT_ENABLED,
