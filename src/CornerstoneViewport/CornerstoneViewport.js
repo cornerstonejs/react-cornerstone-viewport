@@ -321,24 +321,23 @@ class CornerstoneViewport extends Component {
       }
     ];
 
-    // Enable the DOM Element for use with Cornerstone
-    const onElementEnabled = function(evt) {
+    // Pass ELEMENT_ENABLED event to parent
+    const onElementEnabledFn = evt => {
       const enabledElement = evt.detail.element;
-      console.warn('no match');
       if (enabledElement === this.element) {
-        console.warn('match');
         if (this.props.onElementEnabled) {
           this.props.onElementEnabled(evt);
         }
         cornerstone.events.removeEventListener(
           cornerstone.EVENTS.ELEMENT_ENABLED,
-          onElementEnabled
+          onElementEnabledFn
         );
       }
     };
+
     cornerstone.events.addEventListener(
       cornerstone.EVENTS.ELEMENT_ENABLED,
-      onElementEnabled
+      onElementEnabledFn
     );
     cornerstone.enable(element, this.props.cornerstoneOptions);
 
