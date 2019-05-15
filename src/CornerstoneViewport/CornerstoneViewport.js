@@ -92,6 +92,7 @@ class CornerstoneViewport extends Component {
     cineToolData: PropTypes.object.isRequired,
     availableTools: PropTypes.array.isRequired,
     onMeasurementsChanged: PropTypes.func,
+    onElementEnabled: PropTypes.func,
     isActive: PropTypes.bool.isRequired,
     layout: PropTypes.object,
     children: PropTypes.node,
@@ -320,7 +321,24 @@ class CornerstoneViewport extends Component {
       }
     ];
 
-    // Enable the DOM Element for use with Cornerstone
+    // Pass ELEMENT_ENABLED event to parent
+    const onElementEnabledFn = evt => {
+      const enabledElement = evt.detail.element;
+      if (enabledElement === this.element) {
+        if (this.props.onElementEnabled) {
+          this.props.onElementEnabled(evt);
+        }
+        cornerstone.events.removeEventListener(
+          cornerstone.EVENTS.ELEMENT_ENABLED,
+          onElementEnabledFn
+        );
+      }
+    };
+
+    cornerstone.events.addEventListener(
+      cornerstone.EVENTS.ELEMENT_ENABLED,
+      onElementEnabledFn
+    );
     cornerstone.enable(element, this.props.cornerstoneOptions);
 
     // Handle the case where the imageId isn't loaded correctly and the
