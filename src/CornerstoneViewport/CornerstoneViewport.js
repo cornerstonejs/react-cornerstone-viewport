@@ -725,6 +725,29 @@ class CornerstoneViewport extends Component {
         cornerstone.updateImage(this.element);
       }
 
+      if (viewport.scrollUp) {
+        console.log('scrolling up');
+        let stack = this.state.stack;
+        stack.currentImageIdIndex = Math.min(
+          this.state.numImagesLoaded,
+          ++stack.currentImageIdIndex
+        );
+
+        this.setState({
+          stack
+        });
+      }
+
+      if (viewport.scrollDown) {
+        console.log('scrolling Down');
+        let stack = this.state.stack;
+        stack.currentImageIdIndex = Math.max(0, --stack.currentImageIdIndex);
+
+        this.setState({
+          stack
+        });
+      }
+
       this.setState({
         viewport
       });
