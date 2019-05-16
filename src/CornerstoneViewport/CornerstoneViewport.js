@@ -726,26 +726,35 @@ class CornerstoneViewport extends Component {
       }
 
       if (viewport.scrollUp) {
-        console.log('scrolling up');
         let stack = this.state.stack;
         stack.currentImageIdIndex = Math.min(
           this.state.numImagesLoaded,
           ++stack.currentImageIdIndex
         );
 
-        this.setState({
-          stack
-        });
+        scrollToIndex(this.element, stack.currentImageIdIndex);
+        this.setState({ stack });
       }
 
       if (viewport.scrollDown) {
-        console.log('scrolling Down');
         let stack = this.state.stack;
         stack.currentImageIdIndex = Math.max(0, --stack.currentImageIdIndex);
+        scrollToIndex(this.element, stack.currentImageIdIndex);
+        this.setState({ stack });
+      }
 
-        this.setState({
-          stack
-        });
+      if (viewport.scrollFirstImage) {
+        let stack = this.state.stack;
+        stack.currentImageIdIndex = 0;
+        scrollToIndex(this.element, stack.currentImageIdIndex);
+        this.setState({ stack });
+      }
+
+      if (viewport.scrollLastImage) {
+        let stack = this.state.stack;
+        const numImagesLoaded = this.state.stack.imageIds.length - 1;
+        scrollToIndex(this.element, numImagesLoaded);
+        this.setState({ stack });
       }
 
       this.setState({
