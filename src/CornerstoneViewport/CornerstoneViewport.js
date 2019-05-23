@@ -808,6 +808,11 @@ class CornerstoneViewport extends Component {
         this.setState({ stack });
       }
 
+      if (viewport.nextPanel) {
+        const enabledElements = cornerstone.getEnabledElements();
+        this.element = enabledElements;
+      }
+
       this.setState({
         viewport
       });
