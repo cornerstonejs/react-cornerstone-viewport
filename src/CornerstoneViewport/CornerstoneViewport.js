@@ -59,6 +59,7 @@ class CornerstoneViewport extends Component {
       isPlaying: false,
       cineFrameRate: 24
     },
+    viewport: null,
     availableTools: [
       { name: 'Pan', mouseButtonMasks: [1, 4] },
       {
@@ -94,6 +95,7 @@ class CornerstoneViewport extends Component {
     onMeasurementsChanged: PropTypes.func,
     onElementEnabled: PropTypes.func,
     isActive: PropTypes.bool.isRequired,
+    viewport: PropTypes.object,
     layout: PropTypes.object,
     children: PropTypes.node,
     onDoubleClick: PropTypes.func,
@@ -127,7 +129,8 @@ class CornerstoneViewport extends Component {
       isLoading: false,
       numImagesLoaded: 0,
       error: null,
-      viewport: cornerstone.getDefaultViewport(null, undefined)
+      viewport:
+        props.viewport || cornerstone.getDefaultViewport(null, undefined)
     };
 
     const { loadHandlerManager } = cornerstoneTools;
@@ -421,8 +424,16 @@ class CornerstoneViewport extends Component {
           return;
         }
 
-        // Set Soft Tissue preset for all images by default
-        const viewport = cornerstone.getDefaultViewportForImage(element, image);
+        const defaultViewport = cornerstone.getDefaultViewportForImage(
+          element,
+          image
+        );
+
+        const viewport = Object.assign(
+          {},
+          defaultViewport,
+          this.state.viewport
+        );
 
         // Display the first image
         cornerstone.displayImage(element, image, viewport);
@@ -712,6 +723,101 @@ class CornerstoneViewport extends Component {
           this.props.cineToolData.cineFrameRate
         );
       }
+    }
+
+    // TODO? Should we shallow equality check these?
+    if (this.props.viewport !== prevProps.viewport) {
+      // Update the internal representation of the viewport parameters
+      let viewport = Object.assign(
+        {},
+        this.state.viewport,
+        this.props.viewport
+      );
+
+      // Handle reset and fitToWindow cases
+      // If viewport.scale === null or voi === null, call getDefaultViewportForImage
+      // and use these values prior to calling setViewport
+
+      const defaultViewport = cornerstone.getDefaultViewportForImage(
+        this.element,
+        cornerstone.getImage(this.element)
+      );
+      if (viewport.voi === null) {
+        viewport.voi = defaultViewport.voi;
+      }
+
+      if (viewport.zoomScale !== null) {
+        const maximumScale = 10;
+        const minimumScale = 0.05;
+
+        if (viewport.zoomScale === 0) {
+          viewport.scale = defaultViewport.scale;
+        } else if (viewport.zoomScale < 0) {
+          viewport.scale = Math.max(
+            viewport.scale + viewport.zoomScale,
+            minimumScale
+          );
+        } else {
+          viewport.scale = Math.min(
+            viewport.scale + viewport.zoomScale,
+            maximumScale
+          );
+        }
+      }
+
+      if (viewport.resetViewport) {
+        viewport = defaultViewport;
+      }
+
+      if (viewport.clearTools) {
+        const toolStateManager =
+          cornerstoneTools.globalImageIdSpecificToolStateManager;
+        toolStateManager.clear(this.element);
+        cornerstone.updateImage(this.element);
+      }
+
+      if (viewport.scrollUp) {
+        let stack = this.state.stack;
+        stack.currentImageIdIndex = Math.min(
+          this.state.numImagesLoaded,
+          ++stack.currentImageIdIndex
+        );
+
+        scrollToIndex(this.element, stack.currentImageIdIndex);
+        this.setState({ stack });
+      }
+
+      if (viewport.scrollDown) {
+        let stack = this.state.stack;
+        stack.currentImageIdIndex = Math.max(0, --stack.currentImageIdIndex);
+        scrollToIndex(this.element, stack.currentImageIdIndex);
+        this.setState({ stack });
+      }
+
+      if (viewport.scrollFirstImage) {
+        let stack = this.state.stack;
+        stack.currentImageIdIndex = 0;
+        scrollToIndex(this.element, stack.currentImageIdIndex);
+        this.setState({ stack });
+      }
+
+      if (viewport.scrollLastImage) {
+        let stack = this.state.stack;
+        const numImagesLoaded = this.state.stack.imageIds.length - 1;
+        scrollToIndex(this.element, numImagesLoaded);
+        this.setState({ stack });
+      }
+
+      if (viewport.nextPanel) {
+        const enabledElements = cornerstone.getEnabledElements();
+        this.element = enabledElements;
+      }
+
+      this.setState({
+        viewport
+      });
+
+      cornerstone.setViewport(this.element, viewport);
     }
   }
 

@@ -16,6 +16,11 @@ export default class App extends Component {
       }
     }
 
+    const viewport = {
+      invert: true,
+      voi: {}
+    };
+
     const style = {
       'height': '512px'
     };
@@ -34,8 +39,9 @@ export default class App extends Component {
           <div className='col-xs-12 col-lg-6' style={style}>
             <CornerstoneViewport
               viewportData={exampleData}
-              cornerstone={cornerstone} 
+              cornerstone={cornerstone}
               cornerstoneTools={cornerstoneTools}
+              viewport={viewport}
               />
           </div>
         </div>
