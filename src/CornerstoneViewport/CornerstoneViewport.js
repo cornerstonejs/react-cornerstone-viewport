@@ -172,6 +172,8 @@ class CornerstoneViewport extends Component {
 
     // Skip if image was not changed
     if (
+      stateStack.sopInstanceUid &&
+      viewportDataStack.sopInstanceUid &&
       stateStack.currentImageIdIndex ===
         viewportDataStack.currentImageIdIndex &&
       stateStack.sopInstanceUid === viewportDataStack.sopInstanceUid
@@ -180,7 +182,12 @@ class CornerstoneViewport extends Component {
     }
 
     const stackData = cornerstoneTools.getToolState(this.element, 'stack');
-    const stack = stackData && stackData.data[0];
+    let stack = stackData && stackData.data[0];
+
+    // Use viewport stack if cornerstone stack is not ready yet
+    if (!stack) {
+      stack = viewportDataStack;
+    }
 
     const imageId = stack.imageIds[stack.currentImageIdIndex];
     const sopCommonModule = cornerstone.metaData.get(
@@ -373,6 +380,12 @@ class CornerstoneViewport extends Component {
       }
     ];
 
+    this.eventHandlerData.forEach(data => {
+      const { eventTarget, eventType, handler } = data;
+
+      eventTarget.addEventListener(eventType, handler);
+    });
+
     // Pass ELEMENT_ENABLED event to parent
     const onElementEnabledFn = evt => {
       const enabledElement = evt.detail.element;
@@ -485,12 +498,6 @@ class CornerstoneViewport extends Component {
           isTouchActive: true
         });
 
-        this.eventHandlerData.forEach(data => {
-          const { eventTarget, eventType, handler } = data;
-
-          eventTarget.addEventListener(eventType, handler);
-        });
-
         this.setState({
           viewportHeight: `${this.element.clientHeight - 20}px`
         });
@@ -567,6 +574,8 @@ class CornerstoneViewport extends Component {
 
       if (!currentStack) {
         currentStack = {
+          displaySetInstanceUid,
+          studyInstanceUid,
           currentImageIdIndex,
           imageIds: stack.imageIds
         };
@@ -575,6 +584,8 @@ class CornerstoneViewport extends Component {
         cornerstoneTools.addToolState(this.element, 'stack', currentStack);
       } else {
         // TODO: we should make something like setToolState by an ID
+        currentStack.displaySetInstanceUid = displaySetInstanceUid;
+        currentStack.studyInstanceUid = studyInstanceUid;
         currentStack.currentImageIdIndex = currentImageIdIndex;
         currentStack.imageIds = stack.imageIds;
       }
@@ -637,6 +648,8 @@ class CornerstoneViewport extends Component {
 
       if (!currentStack) {
         currentStack = {
+          displaySetInstanceUid,
+          studyInstanceUid,
           currentImageIdIndex,
           imageIds: stack.imageIds
         };
@@ -647,6 +660,8 @@ class CornerstoneViewport extends Component {
         scrollToIndex(this.element, currentImageIdIndex);
 
         // TODO: we should make something like setToolState by an ID
+        currentStack.displaySetInstanceUid = displaySetInstanceUid;
+        currentStack.studyInstanceUid = studyInstanceUid;
         currentStack.currentImageIdIndex = currentImageIdIndex;
         currentStack.imageIds = stack.imageIds;
       }
