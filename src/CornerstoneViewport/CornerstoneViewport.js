@@ -148,6 +148,11 @@ class CornerstoneViewport extends Component {
         viewportHeight: `${this.element.clientHeight - 20}px`
       });
     }, 300);
+
+    this.debouncedUpdateViewportSpecificData = debounce(
+      this.updateViewportSpecificData,
+      300
+    );
   }
 
   /**
@@ -297,7 +302,7 @@ class CornerstoneViewport extends Component {
       this.props.onNewImage(event);
     }
 
-    this.updateViewportSpecificData();
+    this.debouncedUpdateViewportSpecificData();
   };
 
   componentDidMount() {
