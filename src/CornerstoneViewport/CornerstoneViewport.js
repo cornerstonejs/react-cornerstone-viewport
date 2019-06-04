@@ -29,7 +29,7 @@ function initializeTools(cornerstoneTools, tools, element) {
   Array.from(tools).forEach(tool => {
     const apiTool = cornerstoneTools[`${tool.name}Tool`] || tool.apiTool;
     if (apiTool) {
-      cornerstoneTools.addToolForElement(element, apiTool, tool.configuration);
+      cornerstoneTools.addToolForElement(element, apiTool, tool.props);
     } else {
       throw new Error(`Tool not found: ${tool.name}Tool`);
     }
@@ -63,7 +63,7 @@ class CornerstoneViewport extends Component {
       { name: 'Pan', mouseButtonMasks: [1, 4] },
       {
         name: 'Zoom',
-        configuration: {
+        props: {
           minScale: 0.3,
           maxScale: 25,
           preventZoomOutsideImage: true
