@@ -865,7 +865,7 @@ class CornerstoneViewport extends Component {
     }
   };
 
-  onTouchStart = () => {
+  onTouchStart = event => {
     this.setViewportActive();
 
     if (this.props.onTouchStart) {
