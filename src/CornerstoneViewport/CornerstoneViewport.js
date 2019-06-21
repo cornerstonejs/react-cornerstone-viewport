@@ -73,7 +73,7 @@ class CornerstoneViewport extends Component {
       { name: 'Wwwc', mouseButtonMasks: [1] },
       { name: 'Bidirectional', mouseButtonMasks: [1] },
       { name: 'Length', mouseButtonMasks: [1] },
-	  { name: 'Freehand', mouseButtonMasks: [1] },
+	    { name: 'Freehand', mouseButtonMasks: [1] },
       { name: 'Angle', mouseButtonMasks: [1] },
       { name: 'StackScroll', mouseButtonMasks: [1] },
       { name: 'Brush', mouseButtonMasks: [1] },
