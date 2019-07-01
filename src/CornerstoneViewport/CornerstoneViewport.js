@@ -53,6 +53,7 @@ class CornerstoneViewport extends Component {
       }
     },
     isActive: false,
+    isLoading: true,
     cornerstoneOptions: {},
     enableStackPrefetch: true,
     cineToolData: {
@@ -73,7 +74,7 @@ class CornerstoneViewport extends Component {
       { name: 'Wwwc', mouseButtonMasks: [1] },
       { name: 'Bidirectional', mouseButtonMasks: [1] },
       { name: 'Length', mouseButtonMasks: [1] },
-	    { name: 'FreehandMouse', mouseButtonMasks: [1] },
+      { name: 'FreehandMouse', mouseButtonMasks: [1] },
       { name: 'Angle', mouseButtonMasks: [1] },
       { name: 'StackScroll', mouseButtonMasks: [1] },
       { name: 'Brush', mouseButtonMasks: [1] },
@@ -95,6 +96,7 @@ class CornerstoneViewport extends Component {
     onMeasurementsChanged: PropTypes.func,
     onElementEnabled: PropTypes.func,
     isActive: PropTypes.bool.isRequired,
+    isLoading: PropTypes.bool.isRequired,
     layout: PropTypes.object,
     children: PropTypes.node,
     onDoubleClick: PropTypes.func,
@@ -112,8 +114,6 @@ class CornerstoneViewport extends Component {
     ])
   };
 
-  static loadIndicatorDelay = 45;
-
   constructor(props) {
     super(props);
 
@@ -125,15 +125,11 @@ class CornerstoneViewport extends Component {
       displaySetInstanceUid: props.viewportData.displaySetInstanceUid,
       imageId: stack.imageIds[stack.currentImageIdIndex || 0],
       viewportHeight: '100%',
-      isLoading: false,
+      isLoading: props.isLoading,
       numImagesLoaded: 0,
       error: null,
       viewport: cornerstone.getDefaultViewport(null, undefined)
     };
-
-    const { loadHandlerManager } = cornerstoneTools;
-    loadHandlerManager.setStartLoadHandler(this.startLoadingHandler);
-    loadHandlerManager.setEndLoadHandler(this.doneLoadingHandler);
 
     this.debouncedResize = debounce(() => {
       try {
@@ -734,6 +730,15 @@ class CornerstoneViewport extends Component {
         );
       }
     }
+
+    if (
+      this.props.isLoading !== prevProps.isLoading &&
+      this.props.isLoading !== this.state.isLoading
+    ) {
+      this.setState({
+        isLoading: this.props.isLoading
+      });
+    }
   }
 
   setActiveTool = activeTool => {
@@ -800,23 +805,6 @@ class CornerstoneViewport extends Component {
   onImageLoaded = () => {
     this.setState({
       numImagesLoaded: this.state.numImagesLoaded + 1
-    });
-  };
-
-  startLoadingHandler = () => {
-    clearTimeout(this.loadHandlerTimeout);
-    this.loadHandlerTimeout = setTimeout(() => {
-      this.setState({
-        isLoading: true
-      });
-    }, CornerstoneViewport.loadIndicatorDelay);
-  };
-
-  doneLoadingHandler = () => {
-    clearTimeout(this.loadHandlerTimeout);
-
-    this.setState({
-      isLoading: false
     });
   };
 
