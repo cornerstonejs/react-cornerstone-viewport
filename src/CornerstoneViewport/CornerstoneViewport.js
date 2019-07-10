@@ -442,7 +442,9 @@ class CornerstoneViewport extends Component {
         // Display the first image
         cornerstone.displayImage(element, image, viewport);
         const endLoadHandler = cornerstoneTools.loadHandlerManager.getEndLoadHandler();
-        endLoadHandler(element);
+        if (endLoadHandler !== undefined) {
+          endLoadHandler(element);
+        }
         // Clear any previous tool state
         cornerstoneTools.clearToolState(this.element, 'stack');
 
