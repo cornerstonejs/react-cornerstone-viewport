@@ -14,6 +14,7 @@ import './CornerstoneViewport.css';
 const EVENT_RESIZE = 'resize';
 
 const scrollToIndex = cornerstoneTools.import('util/scrollToIndex');
+const { loadHandlerManager } = cornerstoneTools;
 
 function setToolsPassive(cornerstoneTools, tools) {
   tools.forEach(tool => {
@@ -73,7 +74,7 @@ class CornerstoneViewport extends Component {
       { name: 'Wwwc', mouseButtonMasks: [1] },
       { name: 'Bidirectional', mouseButtonMasks: [1] },
       { name: 'Length', mouseButtonMasks: [1] },
-	    { name: 'FreehandMouse', mouseButtonMasks: [1] },
+      { name: 'FreehandMouse', mouseButtonMasks: [1] },
       { name: 'Angle', mouseButtonMasks: [1] },
       { name: 'StackScroll', mouseButtonMasks: [1] },
       { name: 'Brush', mouseButtonMasks: [1] },
@@ -120,6 +121,7 @@ class CornerstoneViewport extends Component {
     // TODO: Allow viewport as a prop
     const viewportDataStack = props.viewportData.stack;
     const stack = Object.assign({}, viewportDataStack);
+
     this.state = {
       stack,
       displaySetInstanceUid: props.viewportData.displaySetInstanceUid,
@@ -130,10 +132,6 @@ class CornerstoneViewport extends Component {
       error: null,
       viewport: cornerstone.getDefaultViewport(null, undefined)
     };
-
-    const { loadHandlerManager } = cornerstoneTools;
-    loadHandlerManager.setStartLoadHandler(this.startLoadingHandler);
-    loadHandlerManager.setEndLoadHandler(this.doneLoadingHandler);
 
     this.debouncedResize = debounce(() => {
       try {
@@ -411,6 +409,12 @@ class CornerstoneViewport extends Component {
       onElementEnabledFn
     );
     cornerstone.enable(element, this.props.cornerstoneOptions);
+
+    loadHandlerManager.setStartLoadHandler(
+      this.startLoadingHandler,
+      this.element
+    );
+    loadHandlerManager.setEndLoadHandler(this.doneLoadingHandler, this.element);
 
     // Handle the case where the imageId isn't loaded correctly and the
     // imagePromise returns undefined
@@ -814,7 +818,6 @@ class CornerstoneViewport extends Component {
 
   doneLoadingHandler = () => {
     clearTimeout(this.loadHandlerTimeout);
-
     this.setState({
       isLoading: false
     });
