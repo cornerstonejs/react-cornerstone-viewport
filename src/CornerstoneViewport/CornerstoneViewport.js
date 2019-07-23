@@ -44,6 +44,20 @@ function initializeTools(cornerstoneTools, tools, element) {
   });
 }
 
+function layoutsEqual(a, b) {
+  if (a.viewports.length !== b.viewports.length) {
+    return false;
+  }
+
+  return a.viewports.every((aViewport, index) => {
+    return viewportsEqual(aViewport, b.viewports[index]);
+  });
+}
+
+function viewportsEqual(a, b) {
+  return a.height === b.height && a.width === b.width;
+}
+
 class CornerstoneViewport extends Component {
   static defaultProps = {
     activeTool: 'Wwwc',
@@ -210,6 +224,13 @@ class CornerstoneViewport extends Component {
     });
   };
 
+  getOverlay() {
+    const { viewportOverlayComponent: Component } = this.props;
+    const { imageId, stack, viewport } = this.state;
+
+    return <Component stack={stack} viewport={viewport} imageId={imageId} />;
+  }
+
   render() {
     const isLoading = this.state.isLoading;
     // TODO: Check this later
@@ -221,18 +242,6 @@ class CornerstoneViewport extends Component {
     if (this.props.isActive) {
       className += ' active';
     }
-
-    const getOverlay = () => {
-      const Component = this.props.viewportOverlayComponent;
-
-      return (
-        <Component
-          stack={this.state.stack}
-          viewport={this.state.viewport}
-          imageId={this.state.imageId}
-        />
-      );
-    };
 
     return (
       <div className={className}>
@@ -255,7 +264,7 @@ class CornerstoneViewport extends Component {
             <LoadingIndicator error={this.state.error} />
           )}
           <canvas className="cornerstone-canvas" />
-          {getOverlay()}
+          {this.getOverlay()}
           <ViewportOrientationMarkers
             imageId={this.state.imageId}
             viewport={this.state.viewport}
@@ -696,7 +705,7 @@ class CornerstoneViewport extends Component {
       });
     }
 
-    if (this.props.layout !== prevProps.layout) {
+    if (!layoutsEqual(this.props.layout, prevProps.layout)) {
       this.debouncedResize();
     }
 
