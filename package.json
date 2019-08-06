@@ -14,6 +14,7 @@
     "npm": ">=5"
   },
   "scripts": {
+    "cm": "npx git-cz",
     "test": "cross-env CI=1 react-scripts test --env=jsdom",
     "test:watch": "react-scripts test --env=jsdom",
     "build": "rollup -c",
@@ -43,6 +44,7 @@
     "@babel/preset-react": "^7.0.0",
     "@svgr/rollup": "^4.1.0",
     "babel-eslint": "9.0.0",
+    "commitizen": "3.1.x",
     "cross-env": "^5.2.0",
     "eslint": "5.12.0",
     "eslint-plugin-import": "^2.14.0",
@@ -50,7 +52,7 @@
     "eslint-plugin-promise": "^4.0.1",
     "eslint-plugin-react": "^7.11.1",
     "gh-pages": "^2.0.1",
-    "husky": "^1.2.1",
+    "husky": "^3.0.2",
     "lint-staged": "^8.1.0",
     "prettier": "^1.15.3",
     "prop-types": "^15.6.2",
@@ -65,6 +67,7 @@
     "rollup-plugin-peer-deps-external": "^2.2.0",
     "rollup-plugin-postcss": "^2.0.3",
     "rollup-plugin-url": "^2.1.0",
+    "semantic-release": "^15.13.19",
     "stylelint": "^9.9.0",
     "stylelint-config-recommended": "^2.1.0"
   },
@@ -95,5 +98,10 @@
     "lodash.debounce": "^4.0.8",
     "moment": "^2.23.0",
     "stylus": "^0.54.5"
+  },
+  "config": {
+    "commitizen": {
+      "path": "./node_modules/cz-conventional-changelog"
+    }
   }
 }
