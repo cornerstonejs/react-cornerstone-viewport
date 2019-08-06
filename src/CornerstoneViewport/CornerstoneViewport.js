@@ -141,7 +141,7 @@ class CornerstoneViewport extends Component {
       displaySetInstanceUid: props.viewportData.displaySetInstanceUid,
       imageId: stack.imageIds[stack.currentImageIdIndex || 0],
       viewportHeight: '100%',
-      isLoading: false,
+      isLoading: true,
       numImagesLoaded: 0,
       error: null,
       viewport: cornerstone.getDefaultViewport(null, undefined)
