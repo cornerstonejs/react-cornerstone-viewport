@@ -550,22 +550,17 @@ class CornerstoneViewport extends Component {
     // TODO[cornerstoneTools]: Make this happen internally
     cornerstoneTools.clearToolState(element, 'stackPrefetch');
 
+    // Try to stop any currently playing clips
+    // Otherwise the interval will continuously throw errors
+    // TODO[cornerstoneTools]: Make this happen internally
+    const enabledElement = cornerstone.getEnabledElement(element);
+    if (enabledElement) {
+      cornerstoneTools.stopClip(element);
+    }
     // Disable the viewport element with Cornerstone
     // This also triggers the removal of the element from all available
     // synchronizers, such as the one used for reference lines.
     cornerstone.disable(element);
-
-    // Try to stop any currently playing clips
-    // Otherwise the interval will continuously throw errors
-    // TODO[cornerstoneTools]: Make this happen internally
-    try {
-      const enabledElement = cornerstone.getEnabledElement(element);
-      if (enabledElement) {
-        cornerstoneTools.stopClip(element);
-      }
-    } catch (error) {
-      //console.warn(error);
-    }
 
     if (this.props.clearViewportSpecificData) {
       this.props.clearViewportSpecificData();
