@@ -45,7 +45,12 @@ function initializeTools(cornerstoneTools, tools, element) {
 }
 
 function layoutsEqual(a, b) {
-  if (a.viewports.length !== b.viewports.length) {
+  if (
+    !a ||
+    !b ||
+    (!a.viewports && !b.viewports) ||
+    a.viewports.length !== b.viewports.length
+  ) {
     return false;
   }
 
