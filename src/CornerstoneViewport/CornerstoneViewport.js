@@ -102,7 +102,8 @@ class CornerstoneViewport extends Component {
       { name: 'StackScrollMouseWheel' },
       { name: 'StackScrollMultiTouch' }
     ],
-    viewportOverlayComponent: ViewportOverlay
+    viewportOverlayComponent: ViewportOverlay,
+    shouldFitToWindowOnResize: false
   };
 
   static propTypes = {
@@ -129,7 +130,8 @@ class CornerstoneViewport extends Component {
     viewportOverlayComponent: PropTypes.oneOfType([
       PropTypes.string,
       PropTypes.func
-    ])
+    ]),
+    shouldFitToWindowOnResize: PropTypes.bool
   };
 
   static loadIndicatorDelay = 45;
@@ -160,7 +162,7 @@ class CornerstoneViewport extends Component {
         return;
       }
 
-      cornerstone.resize(this.element, true);
+      cornerstone.resize(this.element, props.shouldFitToWindowOnResize);
 
       this.setState({
         viewportHeight: `${this.element.clientHeight - 20}px`
