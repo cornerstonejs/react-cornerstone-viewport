@@ -527,6 +527,15 @@ class CornerstoneViewport extends Component {
         this.setState({
           viewportHeight: `${this.element.clientHeight - 20}px`
         });
+
+        // Our `doneLoadingHandler` isn't firing for the initial image load
+        // Dropping this here, as the image should definitely be loaded at this point,
+        // and we can force the loading state off. TODO: investigate
+        setTimeout(() => {
+          this.setState({
+            isLoading: false
+          });
+        }, CornerstoneViewport.loadIndicatorDelay);
       },
       error => {
         console.error(error);
