@@ -45,7 +45,12 @@ function initializeTools(cornerstoneTools, tools, element) {
 }
 
 function layoutsEqual(a, b) {
-  if (a.viewports.length !== b.viewports.length) {
+  if (
+    !a ||
+    !b ||
+    (!a.viewports && !b.viewports) ||
+    a.viewports.length !== b.viewports.length
+  ) {
     return false;
   }
 
@@ -97,7 +102,8 @@ class CornerstoneViewport extends Component {
       { name: 'StackScrollMouseWheel' },
       { name: 'StackScrollMultiTouch' }
     ],
-    viewportOverlayComponent: ViewportOverlay
+    viewportOverlayComponent: ViewportOverlay,
+    shouldFitToWindowOnResize: false
   };
 
   static propTypes = {
@@ -124,7 +130,8 @@ class CornerstoneViewport extends Component {
     viewportOverlayComponent: PropTypes.oneOfType([
       PropTypes.string,
       PropTypes.func
-    ])
+    ]),
+    shouldFitToWindowOnResize: PropTypes.bool
   };
 
   static loadIndicatorDelay = 45;
@@ -141,7 +148,7 @@ class CornerstoneViewport extends Component {
       displaySetInstanceUid: props.viewportData.displaySetInstanceUid,
       imageId: stack.imageIds[stack.currentImageIdIndex || 0],
       viewportHeight: '100%',
-      isLoading: false,
+      isLoading: true,
       numImagesLoaded: 0,
       error: null,
       viewport: cornerstone.getDefaultViewport(null, undefined)
@@ -155,7 +162,7 @@ class CornerstoneViewport extends Component {
         return;
       }
 
-      cornerstone.resize(this.element, true);
+      cornerstone.resize(this.element, props.shouldFitToWindowOnResize);
 
       this.setState({
         viewportHeight: `${this.element.clientHeight - 20}px`
@@ -550,22 +557,17 @@ class CornerstoneViewport extends Component {
     // TODO[cornerstoneTools]: Make this happen internally
     cornerstoneTools.clearToolState(element, 'stackPrefetch');
 
+    // Try to stop any currently playing clips
+    // Otherwise the interval will continuously throw errors
+    // TODO[cornerstoneTools]: Make this happen internally
+    const enabledElement = cornerstone.getEnabledElement(element);
+    if (enabledElement) {
+      cornerstoneTools.stopClip(element);
+    }
     // Disable the viewport element with Cornerstone
     // This also triggers the removal of the element from all available
     // synchronizers, such as the one used for reference lines.
     cornerstone.disable(element);
-
-    // Try to stop any currently playing clips
-    // Otherwise the interval will continuously throw errors
-    // TODO[cornerstoneTools]: Make this happen internally
-    try {
-      const enabledElement = cornerstone.getEnabledElement(element);
-      if (enabledElement) {
-        cornerstoneTools.stopClip(element);
-      }
-    } catch (error) {
-      //console.warn(error);
-    }
 
     if (this.props.clearViewportSpecificData) {
       this.props.clearViewportSpecificData();
