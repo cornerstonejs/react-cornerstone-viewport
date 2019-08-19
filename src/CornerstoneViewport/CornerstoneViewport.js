@@ -44,19 +44,27 @@ function initializeTools(cornerstoneTools, tools, element) {
   });
 }
 
-function layoutsEqual(a, b) {
-  if (
-    !a ||
-    !b ||
-    (!a.viewports && !b.viewports) ||
-    a.viewports.length !== b.viewports.length
-  ) {
-    return false;
+function areLayoutsEqual(a, b, viewportIndex = 0) {
+  const notEqual = false;
+  const viewportsExist =
+    a &&
+    b &&
+    a.viewports &&
+    b.viewports &&
+    a.viewports.length > 0 &&
+    b.viewports.length > 0;
+  const wasNotSetAndNowIs = (!a && b) || (!a.viewports && !b.viewports);
+  const hasNumViewportsChanged =
+    viewportsExist && a.viewports.length !== b.viewports.length;
+
+  if (wasNotSetAndNowIs || hasNumViewportsChanged) {
+    return notEqual;
   }
 
-  return a.viewports.every((aViewport, index) => {
-    return viewportsEqual(aViewport, b.viewports[index]);
-  });
+  const aViewport = a.viewports[viewportIndex];
+  const bViewport = b.viewports[viewportIndex];
+
+  return viewportsEqual(aViewport, bViewport);
 }
 
 function viewportsEqual(a, b) {
@@ -131,7 +139,8 @@ class CornerstoneViewport extends Component {
       PropTypes.string,
       PropTypes.func
     ]),
-    shouldFitToWindowOnResize: PropTypes.bool
+    shouldFitToWindowOnResize: PropTypes.bool,
+    viewportIndex: PropTypes.number
   };
 
   static loadIndicatorDelay = 45;
@@ -716,7 +725,10 @@ class CornerstoneViewport extends Component {
       });
     }
 
-    if (!layoutsEqual(this.props.layout, prevProps.layout)) {
+    if (
+      this.props.layout &&
+      !areLayoutsEqual(this.props.layout, prevProps.layout)
+    ) {
       this.debouncedResize();
     }
 
