@@ -101,7 +101,7 @@ class CornerstoneViewport extends Component {
       { name: 'Wwwc', mouseButtonMasks: [1] },
       { name: 'Bidirectional', mouseButtonMasks: [1] },
       { name: 'Length', mouseButtonMasks: [1] },
-      { name: 'FreehandMouse', mouseButtonMasks: [1] },
+      { name: 'FreehandRoi', mouseButtonMasks: [1] },
       { name: 'Angle', mouseButtonMasks: [1] },
       { name: 'StackScroll', mouseButtonMasks: [1] },
       { name: 'Brush', mouseButtonMasks: [1] },
@@ -364,8 +364,8 @@ class CornerstoneViewport extends Component {
       },
       {
         eventTarget: element,
-        eventType: cornerstoneTools.EVENTS.MEASUREMENT_MODIFIED,
-        handler: this.onMeasurementModified
+        eventType: cornerstoneTools.EVENTS.LABELMAP_MODIFIED,
+        handler: this.onLabelmapModified
       },
       {
         eventTarget: element,
@@ -870,6 +870,12 @@ class CornerstoneViewport extends Component {
   onMeasurementModified = event => {
     if (this.props.onMeasurementsChanged) {
       this.props.onMeasurementsChanged(event, 'modified');
+    }
+  };
+
+  onLabelmapModified = event => {
+    if (this.props.onMeasurementsChanged) {
+      this.props.onMeasurementsChanged(event, 'labelmapModified');
     }
   };
 
