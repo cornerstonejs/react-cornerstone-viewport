@@ -364,8 +364,8 @@ class CornerstoneViewport extends Component {
       },
       {
         eventTarget: element,
-        eventType: cornerstoneTools.EVENTS.MEASUREMENT_MODIFIED,
-        handler: this.onMeasurementModified
+        eventType: cornerstoneTools.EVENTS.LABELMAP_MODIFIED,
+        handler: this.onLabelmapModified
       },
       {
         eventTarget: element,
@@ -870,6 +870,12 @@ class CornerstoneViewport extends Component {
   onMeasurementModified = event => {
     if (this.props.onMeasurementsChanged) {
       this.props.onMeasurementsChanged(event, 'modified');
+    }
+  };
+
+  onLabelmapModified = event => {
+    if (this.props.onMeasurementsChanged) {
+      this.props.onMeasurementsChanged(event, 'labelmapModified');
     }
   };
 
