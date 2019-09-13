@@ -15,14 +15,14 @@
   },
   "scripts": {
     "cm": "npx git-cz",
+    "dev": "rollup -c -w",
+    "build": "rollup -c",
+    "deploy": "gh-pages -d example/build",
+    "predeploy": "cd example && npm install && npm run build",
+    "prepublishOnly": "npm run build",
+    "start": "npm run dev",
     "test": "cross-env CI=1 react-scripts test --env=jsdom",
     "test:watch": "react-scripts test --env=jsdom",
-    "build": "rollup -c",
-    "prepublishOnly": "npm run build",
-    "start": "rollup -c -w",
-    "prepare": "npm run build",
-    "predeploy": "cd example && npm install && npm run build",
-    "deploy": "gh-pages -d example/build",
     "generateStaticSite": "./generateStaticSite.sh"
   },
   "peerDependencies": {
