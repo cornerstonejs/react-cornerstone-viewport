@@ -13,7 +13,7 @@ import './CornerstoneViewport.css';
 
 const EVENT_RESIZE = 'resize';
 
-const scrollToIndex = cornerstoneTools.import('util/scrollToIndex');
+const scrollToIndex = cornerstoneTools.importInternal('util/scrollToIndex');
 const { loadHandlerManager } = cornerstoneTools;
 
 function setToolsPassive(cornerstoneTools, tools) {
