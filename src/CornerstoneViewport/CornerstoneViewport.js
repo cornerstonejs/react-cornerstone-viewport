@@ -13,7 +13,7 @@ import './CornerstoneViewport.css';
 
 const EVENT_RESIZE = 'resize';
 
-const scrollToIndex = cornerstoneTools.import('util/scrollToIndex');
+const scrollToIndex = cornerstoneTools.importInternal('util/scrollToIndex');
 const { loadHandlerManager } = cornerstoneTools;
 
 function setToolsPassive(cornerstoneTools, tools) {
@@ -101,7 +101,7 @@ class CornerstoneViewport extends Component {
       { name: 'Wwwc', mouseButtonMasks: [1] },
       { name: 'Bidirectional', mouseButtonMasks: [1] },
       { name: 'Length', mouseButtonMasks: [1] },
-      { name: 'FreehandMouse', mouseButtonMasks: [1] },
+      { name: 'FreehandRoi', mouseButtonMasks: [1] },
       { name: 'Angle', mouseButtonMasks: [1] },
       { name: 'StackScroll', mouseButtonMasks: [1] },
       { name: 'Brush', mouseButtonMasks: [1] },
