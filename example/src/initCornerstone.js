@@ -29,15 +29,11 @@ cornerstoneTools.toolColors.setActiveColor('rgb(0, 255, 0)');
 cornerstoneTools.store.state.touchProximity = 40;
 
 const config = {
-  maxWebWorkers: navigator.hardwareConcurrency || 1,
-  startWebWorkersOnDemand: false,
-  webWorkerPath: window.location + '/cornerstoneWADOImageLoaderWebWorker.min.js',
-  webWorkerTaskPaths: [],
+  maxWebWorkers: Math.max(navigator.hardwareConcurrency - 1, 1),
+  startWebWorkersOnDemand: true,
   taskConfiguration: {
     decodeTask: {
-      loadCodecsOnStartup: true,
       initializeCodecsOnStartup: false,
-      codecsPath: window.location + '/cornerstoneWADOImageLoaderCodecs.min.js',
       usePDFJS: false,
       strict: false
     }
