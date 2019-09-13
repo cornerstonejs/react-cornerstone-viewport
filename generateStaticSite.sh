@@ -1,4 +1,4 @@
 npm run build
 cd example
-npm install
-npm run build
+yarn install
+yarn run build
