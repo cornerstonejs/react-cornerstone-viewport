@@ -1,6 +1,6 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import './ImageScrollbar.styl';
+import './ImageScrollbar.css';
 
 class ImageScrollbar extends PureComponent {
   static propTypes = {

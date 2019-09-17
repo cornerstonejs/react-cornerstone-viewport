@@ -1,7 +1,7 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 
-import './LoadingIndicator.styl';
+import './LoadingIndicator.css';
 
 class LoadingIndicator extends PureComponent {
   static propTypes = {
