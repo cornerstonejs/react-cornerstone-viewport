@@ -33,7 +33,7 @@ export function getOrientationMarkers(imageId, viewport) {
 
   const markers = {
     top: oppositeColumnString,
-    left: oppositeRowString
+    left: oppositeRowString,
   };
 
   // If any vertical or horizontal flips are applied, change the orientation strings ahead of
@@ -55,17 +55,17 @@ export function getOrientationMarkers(imageId, viewport) {
   if (viewport.rotation === 90 || viewport.rotation === -270) {
     return {
       top: markers.left,
-      left: cornerstoneTools.orientation.invertOrientationString(markers.top)
+      left: cornerstoneTools.orientation.invertOrientationString(markers.top),
     };
   } else if (viewport.rotation === -90 || viewport.rotation === 270) {
     return {
       top: cornerstoneTools.orientation.invertOrientationString(markers.left),
-      left: markers.top
+      left: markers.top,
     };
   } else if (viewport.rotation === 180 || viewport.rotation === -180) {
     return {
       top: cornerstoneTools.orientation.invertOrientationString(markers.top),
-      left: cornerstoneTools.orientation.invertOrientationString(markers.left)
+      left: cornerstoneTools.orientation.invertOrientationString(markers.left),
     };
   }
 
@@ -75,7 +75,7 @@ export function getOrientationMarkers(imageId, viewport) {
 class ViewportOrientationMarkers extends PureComponent {
   static propTypes = {
     imageId: PropTypes.string.isRequired,
-    viewport: PropTypes.object.isRequired
+    viewport: PropTypes.object.isRequired,
   };
 
   render() {

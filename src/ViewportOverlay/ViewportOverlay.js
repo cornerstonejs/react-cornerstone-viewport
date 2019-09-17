@@ -11,7 +11,7 @@ const {
   formatDA,
   formatNumberPrecision,
   formatTM,
-  isValidNumber
+  isValidNumber,
 } = helpers;
 
 function getCompression(imageId) {
@@ -20,7 +20,7 @@ function getCompression(imageId) {
   const {
     lossyImageCompression,
     lossyImageCompressionRatio,
-    lossyImageCompressionMethod
+    lossyImageCompressionMethod,
   } = generalImageModule;
 
   if (lossyImageCompression === '01' && lossyImageCompressionRatio !== '') {
@@ -39,7 +39,7 @@ class ViewportOverlay extends PureComponent {
   static propTypes = {
     viewport: PropTypes.object.isRequired,
     imageId: PropTypes.string.isRequired,
-    stack: PropTypes.object.isRequired
+    stack: PropTypes.object.isRequired,
   };
 
   render() {

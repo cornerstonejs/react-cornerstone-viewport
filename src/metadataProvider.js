@@ -35,7 +35,7 @@ function wadoRsMetaDataProvider(type, imageId) {
       instanceNumber: getNumberValue(metaData['00200013']),
       lossyImageCompression: getValue(metaData['00282110']),
       lossyImageCompressionRatio: getValue(metaData['00282112']),
-      lossyImageCompressionMethod: getValue(metaData['00282114'])
+      lossyImageCompressionMethod: getValue(metaData['00282114']),
     };
   }
 
@@ -44,7 +44,7 @@ function wadoRsMetaDataProvider(type, imageId) {
       patientName: getValue(metaData['00100010']),
       patientId: getValue(metaData['00100020']),
       patientSex: getValue(metaData['00100040']),
-      patientBirthDate: getValue(metaData['00100030'])
+      patientBirthDate: getValue(metaData['00100030']),
     };
   }
 
@@ -57,13 +57,13 @@ function wadoRsMetaDataProvider(type, imageId) {
       studyDescription: getValue(metaData['00081030']),
       studyDate: getValue(metaData['00080020']),
       studyTime: getValue(metaData['00080030']),
-      accessionNumber: getValue(metaData['00080050'])
+      accessionNumber: getValue(metaData['00080050']),
     };
   }
 
   if (type === 'cineModule') {
     return {
-      frameTime: getNumberValue(metaData['00181063'])
+      frameTime: getNumberValue(metaData['00181063']),
     };
   }
 }
@@ -73,7 +73,7 @@ cornerstone.metaData.addProvider(wadoRsMetaDataProvider);
 function wadoUriMetaDataProvider(type, imageId) {
   const {
     parseImageId,
-    dataSetCacheManager
+    dataSetCacheManager,
   } = cornerstoneWADOImageLoader.wadouri;
   const parsedImageId = parseImageId(imageId);
   const dataSet = dataSetCacheManager.get(parsedImageId.url);
@@ -87,14 +87,14 @@ function wadoUriMetaDataProvider(type, imageId) {
       instanceNumber: dataSet.intString('x00200013'),
       lossyImageCompression: dataSet.string('x00282110'),
       lossyImageCompressionRatio: dataSet.string('x00282112'),
-      lossyImageCompressionMethod: dataSet.string('x00282114')
+      lossyImageCompressionMethod: dataSet.string('x00282114'),
     };
   }
 
   if (type === 'patientModule') {
     return {
       patientName: dataSet.string('x00100010'),
-      patientId: dataSet.string('x00100020')
+      patientId: dataSet.string('x00100020'),
     };
   }
 
@@ -102,13 +102,13 @@ function wadoUriMetaDataProvider(type, imageId) {
     return {
       studyDescription: dataSet.string('x00081030'),
       studyDate: dataSet.string('x00080020'),
-      studyTime: dataSet.string('x00080030')
+      studyTime: dataSet.string('x00080030'),
     };
   }
 
   if (type === 'cineModule') {
     return {
-      frameTime: dataSet.float('x00181063')
+      frameTime: dataSet.float('x00181063'),
     };
   }
 

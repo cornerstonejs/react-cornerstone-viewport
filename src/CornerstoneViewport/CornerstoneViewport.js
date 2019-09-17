@@ -76,15 +76,15 @@ class CornerstoneViewport extends Component {
     viewportData: {
       stack: {
         imageIds: [],
-        currentImageIdIndex: 0
-      }
+        currentImageIdIndex: 0,
+      },
     },
     isActive: false,
     cornerstoneOptions: {},
     enableStackPrefetch: true,
     cineToolData: {
       isPlaying: false,
-      cineFrameRate: 24
+      cineFrameRate: 24,
     },
     availableTools: [
       { name: 'Pan', mouseButtonMasks: [1, 4] },
@@ -93,9 +93,9 @@ class CornerstoneViewport extends Component {
         props: {
           minScale: 0.3,
           maxScale: 25,
-          preventZoomOutsideImage: true
+          preventZoomOutsideImage: true,
         },
-        mouseButtonMasks: [1, 2]
+        mouseButtonMasks: [1, 2],
       },
       { name: 'Wwwc', mouseButtonMasks: [1] },
       { name: 'Bidirectional', mouseButtonMasks: [1] },
@@ -107,10 +107,10 @@ class CornerstoneViewport extends Component {
       { name: 'PanMultiTouch' },
       { name: 'ZoomTouchPinch' },
       { name: 'StackScrollMouseWheel' },
-      { name: 'StackScrollMultiTouch' }
+      { name: 'StackScrollMultiTouch' },
     ],
     viewportOverlayComponent: ViewportOverlay,
-    shouldFitToWindowOnResize: false
+    shouldFitToWindowOnResize: false,
   };
 
   static propTypes = {
@@ -136,10 +136,10 @@ class CornerstoneViewport extends Component {
     clearViewportSpecificData: PropTypes.func,
     viewportOverlayComponent: PropTypes.oneOfType([
       PropTypes.string,
-      PropTypes.func
+      PropTypes.func,
     ]),
     shouldFitToWindowOnResize: PropTypes.bool,
-    viewportIndex: PropTypes.number
+    viewportIndex: PropTypes.number,
   };
 
   static loadIndicatorDelay = 45;
@@ -159,7 +159,7 @@ class CornerstoneViewport extends Component {
       isLoading: true,
       numImagesLoaded: 0,
       error: null,
-      viewport: cornerstone.getDefaultViewport(null, undefined)
+      viewport: cornerstone.getDefaultViewport(null, undefined),
     };
 
     this.debouncedResize = debounce(() => {
@@ -173,7 +173,7 @@ class CornerstoneViewport extends Component {
       cornerstone.resize(this.element, props.shouldFitToWindowOnResize);
 
       this.setState({
-        viewportHeight: `${this.element.clientHeight - 20}px`
+        viewportHeight: `${this.element.clientHeight - 20}px`,
       });
     }, 300);
 
@@ -235,7 +235,7 @@ class CornerstoneViewport extends Component {
       displaySetInstanceUid: stack.displaySetInstanceUid,
       studyInstanceUid: stack.studyInstanceUid,
       currentImageIdIndex: stack.currentImageIdIndex,
-      sopInstanceUid: sopCommonModule.sopInstanceUID
+      sopInstanceUid: sopCommonModule.sopInstanceUID,
     });
   };
 
@@ -305,13 +305,13 @@ class CornerstoneViewport extends Component {
 
   onImageRendered = event => {
     this.setState({
-      viewport: Object.assign({}, event.detail.viewport)
+      viewport: Object.assign({}, event.detail.viewport),
     });
   };
 
   onNewImage = event => {
     this.setState({
-      imageId: event.detail.image.imageId
+      imageId: event.detail.image.imageId,
     });
 
     if (this.props.onNewImage) {
@@ -327,78 +327,78 @@ class CornerstoneViewport extends Component {
       {
         eventTarget: element,
         eventType: cornerstone.EVENTS.IMAGE_RENDERED,
-        handler: this.onImageRendered
+        handler: this.onImageRendered,
       },
       {
         eventTarget: element,
         eventType: cornerstone.EVENTS.NEW_IMAGE,
-        handler: this.onNewImage
+        handler: this.onNewImage,
       },
       {
         eventTarget: element,
         eventType: cornerstoneTools.EVENTS.STACK_SCROLL,
-        handler: this.onStackScroll
+        handler: this.onStackScroll,
       },
       {
         eventTarget: element,
         eventType: cornerstoneTools.EVENTS.MEASUREMENT_ADDED,
-        handler: this.onMeasurementAdded
+        handler: this.onMeasurementAdded,
       },
       {
         eventTarget: element,
         eventType: cornerstoneTools.EVENTS.MEASUREMENT_MODIFIED,
-        handler: this.onMeasurementModified
+        handler: this.onMeasurementModified,
       },
       {
         eventTarget: element,
         eventType: cornerstoneTools.EVENTS.MEASUREMENT_REMOVED,
-        handler: this.onMeasurementRemoved
+        handler: this.onMeasurementRemoved,
       },
       {
         eventTarget: element,
         eventType: cornerstoneTools.EVENTS.LABELMAP_MODIFIED,
-        handler: this.onLabelmapModified
+        handler: this.onLabelmapModified,
       },
       {
         eventTarget: element,
         eventType: cornerstoneTools.EVENTS.MOUSE_CLICK,
-        handler: this.onMouseClick
+        handler: this.onMouseClick,
       },
       {
         eventTarget: element,
         eventType: cornerstoneTools.EVENTS.MOUSE_DOWN,
-        handler: this.onMouseClick
+        handler: this.onMouseClick,
       },
       {
         eventTarget: element,
         eventType: cornerstoneTools.EVENTS.TOUCH_PRESS,
-        handler: this.onTouchPress
+        handler: this.onTouchPress,
       },
       {
         eventTarget: element,
         eventType: cornerstoneTools.EVENTS.TOUCH_START,
-        handler: this.onTouchStart
+        handler: this.onTouchStart,
       },
       {
         eventTarget: element,
         eventType: cornerstoneTools.EVENTS.DOUBLE_CLICK,
-        handler: this.onDoubleClick
+        handler: this.onDoubleClick,
       },
       {
         eventTarget: element,
         eventType: cornerstoneTools.EVENTS.DOUBLE_TAP,
-        handler: this.onDoubleClick
+        handler: this.onDoubleClick,
       },
       {
         eventTarget: window,
         eventType: EVENT_RESIZE,
-        handler: this.onWindowResize
+        handler: this.onWindowResize,
       },
       {
         eventTarget: cornerstone.events,
         eventType: cornerstone.EVENTS.IMAGE_LOADED,
-        handler: this.onImageLoaded
-      }
+        handler: this.onImageLoaded,
+      },
     ];
 
     this.eventHandlerData.forEach(data => {
@@ -477,7 +477,7 @@ class CornerstoneViewport extends Component {
         cornerstoneTools.addStackStateManager(element, [
           'stack',
           'playClip',
-          'referenceLines'
+          'referenceLines',
         ]);
         cornerstoneTools.addToolState(element, 'stack', stack);
 
@@ -495,23 +495,23 @@ class CornerstoneViewport extends Component {
         */
         cornerstoneTools.setToolActive('PanMultiTouch', {
           mouseButtonMask: 0,
-          isTouchActive: true
+          isTouchActive: true,
         });
         cornerstoneTools.setToolActive('ZoomTouchPinch', {
           mouseButtonMask: 0,
-          isTouchActive: true
+          isTouchActive: true,
         });
 
         cornerstoneTools.setToolActive('StackScrollMultiTouch', {
           mouseButtonMask: 0,
-          isTouchActive: true
+          isTouchActive: true,
         });
 
         // TODO: We should probably configure this somewhere else
         cornerstoneTools.stackPrefetch.setConfiguration({
           maxImagesToPrefetch: Infinity,
           preserveExistingPool: false,
-          maxSimultaneousRequests: 6
+          maxSimultaneousRequests: 6,
         });
 
         /* For mouse devices, by default we turn on:
@@ -522,11 +522,11 @@ class CornerstoneViewport extends Component {
         */
         cornerstoneTools.setToolActive('StackScrollMouseWheel', {
           mouseButtonMask: 0,
-          isTouchActive: true
+          isTouchActive: true,
         });
 
         this.setState({
-          viewportHeight: `${this.element.clientHeight - 20}px`
+          viewportHeight: `${this.element.clientHeight - 20}px`,
         });
 
         // Our `doneLoadingHandler` isn't firing for the initial image load
@@ -534,7 +534,7 @@ class CornerstoneViewport extends Component {
         // and we can force the loading state off. TODO: investigate
         setTimeout(() => {
           this.setState({
-            isLoading: false
+            isLoading: false,
           });
         }, CornerstoneViewport.loadIndicatorDelay);
       },
@@ -542,7 +542,7 @@ class CornerstoneViewport extends Component {
         console.error(error);
 
         this.setState({
-          error
+          error,
         });
       }
     );
@@ -593,7 +593,7 @@ class CornerstoneViewport extends Component {
     ) {
       const {
         displaySetInstanceUid,
-        studyInstanceUid
+        studyInstanceUid,
       } = this.props.viewportData;
 
       const currentImageIdIndex = this.props.viewportData.stack
@@ -608,7 +608,7 @@ class CornerstoneViewport extends Component {
           displaySetInstanceUid,
           studyInstanceUid,
           currentImageIdIndex,
-          imageIds: stack.imageIds
+          imageIds: stack.imageIds,
         };
 
         cornerstoneTools.addStackStateManager(this.element, ['stack']);
@@ -628,7 +628,7 @@ class CornerstoneViewport extends Component {
         displaySetInstanceUid,
         studyInstanceUid,
         stack,
-        imageId
+        imageId,
       });
 
       cornerstoneTools.stackPrefetch.disable(this.element);
@@ -649,7 +649,7 @@ class CornerstoneViewport extends Component {
         // Workaround for Cornerstone issue #304
         viewport.displayedArea.brhc = {
           x: image.width,
-          y: image.height
+          y: image.height,
         };
 
         cornerstone.displayImage(this.element, image, viewport);
@@ -666,7 +666,7 @@ class CornerstoneViewport extends Component {
     ) {
       const {
         displaySetInstanceUid,
-        studyInstanceUid
+        studyInstanceUid,
       } = this.props.viewportData;
 
       const currentImageIdIndex = this.props.viewportData.stack
@@ -682,7 +682,7 @@ class CornerstoneViewport extends Component {
           displaySetInstanceUid,
           studyInstanceUid,
           currentImageIdIndex,
-          imageIds: stack.imageIds
+          imageIds: stack.imageIds,
         };
 
         cornerstoneTools.addStackStateManager(this.element, ['stack']);
@@ -703,7 +703,7 @@ class CornerstoneViewport extends Component {
         displaySetInstanceUid,
         studyInstanceUid,
         stack,
-        imageId
+        imageId,
       });
     }
 
@@ -713,7 +713,7 @@ class CornerstoneViewport extends Component {
       // TODO: Why do we need to do this in v3?
       cornerstoneTools.setToolActive('StackScrollMouseWheel', {
         mouseButtonMask: 0,
-        isTouchActive: true
+        isTouchActive: true,
       });
     }
 
@@ -803,13 +803,13 @@ class CornerstoneViewport extends Component {
     leftMouseToolsWithAnotherButtonMask.forEach(tool => {
       const mouseButtonMask = tool.mouseButtonMasks.filter(mask => mask !== 1);
       cornerstoneTools.setToolActive(tool.name, {
-        mouseButtonMask
+        mouseButtonMask,
       });
     });
 
     cornerstoneTools.setToolActive(activeTool, {
       mouseButtonMask: 1,
-      isTouchActive: true
+      isTouchActive: true,
     });
   };
 
@@ -821,13 +821,13 @@ class CornerstoneViewport extends Component {
     const stack = stackData.data[0];
 
     this.setState({
-      stack
+      stack,
     });
   };
 
   onImageLoaded = () => {
     this.setState({
-      numImagesLoaded: this.state.numImagesLoaded + 1
+      numImagesLoaded: this.state.numImagesLoaded + 1,
     });
   };
 
@@ -835,7 +835,7 @@ class CornerstoneViewport extends Component {
     clearTimeout(this.loadHandlerTimeout);
     this.loadHandlerTimeout = setTimeout(() => {
       this.setState({
-        isLoading: true
+        isLoading: true,
       });
     }, CornerstoneViewport.loadIndicatorDelay);
   };
@@ -843,7 +843,7 @@ class CornerstoneViewport extends Component {
   doneLoadingHandler = () => {
     clearTimeout(this.loadHandlerTimeout);
     this.setState({
-      isLoading: false
+      isLoading: false,
     });
   };
 
@@ -916,7 +916,7 @@ class CornerstoneViewport extends Component {
     stack.currentImageIdIndex = value;
 
     this.setState({
-      stack
+      stack,
     });
   };
 }

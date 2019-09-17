@@ -6,12 +6,12 @@ import './LoadingIndicator.styl';
 class LoadingIndicator extends PureComponent {
   static propTypes = {
     percentComplete: PropTypes.number.isRequired,
-    error: PropTypes.object
+    error: PropTypes.object,
   };
 
   static defaultProps = {
     percentComplete: 0,
-    error: null
+    error: null,
   };
 
   render() {
