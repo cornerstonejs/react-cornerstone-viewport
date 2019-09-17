@@ -4,6 +4,10 @@ import CornerstoneViewport from '@cornerstone-viewport';
 import cornerstone from 'cornerstone-core';
 import cornerstoneTools from 'cornerstone-tools';
 
+// https://github.com/conorhastings/react-syntax-highlighter
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
+import { atomDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
+
 export default class App extends Component {
   render() {
     const exampleData = {
@@ -29,7 +33,7 @@ export default class App extends Component {
           <div className="col-xs-12 col-lg-6">
             <h4>What is this?</h4>
             <p>
-              This is a re-usable component for displaying medical images with{' '}
+              This is a re-usable component for displaying medical images with
               <a
                 href="https://cornerstonejs.org/"
                 target="_blank"
@@ -37,6 +41,27 @@ export default class App extends Component {
               >
                 Cornerstone.js.
               </a>
+              <SyntaxHighlighter language="jsx" style={atomDark}>
+                {`import React from "react";
+import CornerstoneViewport from 'react-cornerstone-viewport';
+
+class App extends React.Component {
+    componentDidMount() {
+    }
+    render() {
+        return (
+          <CornerstoneViewport
+              viewportData={exampleData}
+              cornerstone={cornerstone}
+              cornerstoneTools={cornerstoneTools}
+            />
+        );
+    }
+}
+
+export default App;
+  `}
+              </SyntaxHighlighter>
             </p>
           </div>
           <div className="col-xs-12 col-lg-6" style={style}>
