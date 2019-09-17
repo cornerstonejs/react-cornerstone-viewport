@@ -1,6 +1,5 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import debounce from 'lodash.debounce';
 import ImageScrollbar from '../ImageScrollbar/ImageScrollbar.js';
 import ViewportOverlay from '../ViewportOverlay/ViewportOverlay.js';
 import LoadingIndicator from '../LoadingIndicator/LoadingIndicator.js';
@@ -9,8 +8,6 @@ import cornerstone from 'cornerstone-core';
 import cornerstoneTools from 'cornerstone-tools';
 
 import './CornerstoneViewport.css';
-
-const EVENT_RESIZE = 'resize';
 
 const scrollToIndex = cornerstoneTools.importInternal('util/scrollToIndex');
 const { loadHandlerManager } = cornerstoneTools;
@@ -162,25 +159,12 @@ class CornerstoneViewport extends Component {
       viewport: cornerstone.getDefaultViewport(null, undefined),
     };
 
-    this.debouncedResize = debounce(() => {
-      try {
-        cornerstone.getEnabledElement(this.element);
-      } catch (error) {
-        console.error(error);
-        return;
-      }
+    //   cornerstone.resize(this.element, props.shouldFitToWindowOnResize);
+    //   this.setState({
+    //     viewportHeight: `${this.element.clientHeight - 20}px`,
+    //   });
 
-      cornerstone.resize(this.element, props.shouldFitToWindowOnResize);
-
-      this.setState({
-        viewportHeight: `${this.element.clientHeight - 20}px`,
-      });
-    }, 300);
-
-    this.debouncedUpdateViewportSpecificData = debounce(
-      this.updateViewportSpecificData,
-      300
-    );
+    this.updateViewportSpecificData();
   }
 
   /**
@@ -299,10 +283,6 @@ class CornerstoneViewport extends Component {
     event.preventDefault();
   };
 
-  onWindowResize = () => {
-    this.debouncedResize();
-  };
-
   onImageRendered = event => {
     this.setState({
       viewport: Object.assign({}, event.detail.viewport),
@@ -318,7 +298,7 @@ class CornerstoneViewport extends Component {
       this.props.onNewImage(event);
     }
 
-    this.debouncedUpdateViewportSpecificData();
+    this.updateViewportSpecificData();
   };
 
   componentDidMount() {
@@ -388,11 +368,6 @@ class CornerstoneViewport extends Component {
         eventTarget: element,
         eventType: cornerstoneTools.EVENTS.DOUBLE_TAP,
         handler: this.onDoubleClick,
-      },
-      {
-        eventTarget: window,
-        eventType: EVENT_RESIZE,
-        handler: this.onWindowResize,
       },
       {
         eventTarget: cornerstone.events,
@@ -715,13 +690,6 @@ class CornerstoneViewport extends Component {
         mouseButtonMask: 0,
         isTouchActive: true,
       });
-    }
-
-    if (
-      this.props.layout &&
-      !areLayoutsEqual(this.props.layout, prevProps.layout)
-    ) {
-      this.debouncedResize();
     }
 
     if (

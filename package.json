@@ -35,9 +35,7 @@
     "react-dom": "^15.0.0 || ^16.0.0"
   },
   "dependencies": {
-    "lodash.debounce": "^4.0.8",
-    "moment": "^2.23.0",
-    "stylus": "^0.54.5"
+    "date-fns": "^2.2.1"
   },
   "devDependencies": {
     "@babel/core": "^7.2.0",
