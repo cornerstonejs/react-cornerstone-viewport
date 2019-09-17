@@ -16,7 +16,6 @@
     "react": "^16.4.1",
     "react-cornerstone-viewport": "^0.2.2",
     "react-dom": "^16.4.1",
-    "react-resize-detector": "^3.4.0",
     "react-scripts": "^2.1.5"
   },
   "scripts": {
