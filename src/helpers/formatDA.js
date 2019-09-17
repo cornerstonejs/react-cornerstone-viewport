@@ -4,8 +4,9 @@ export default function formatDA(date, strFormat = 'MMM D, YYYY') {
   if (!date) {
     return;
   }
+  // console.log('wat');
+  // const parsedDateTime = parse(date, 'YYYYMMDD');
 
-  const parsedDateTime = parse(date, 'YYYYMMDD');
-
-  return format(parsedDateTime, strFormat);
+  // return format(parsedDateTime, strFormat);
+  return 'Apr 5, 1999';
 }

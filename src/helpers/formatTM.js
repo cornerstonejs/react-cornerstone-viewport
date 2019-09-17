@@ -11,7 +11,8 @@ export default function formatTM(time, strFormat = 'HH:mm:ss') {
   //      s ss    0..59   Seconds
   //      S SS SSS    0..999  Fractional seconds
   //
-  const parsedDateTime = parse(time, 'HHmmss.SSS');
+  // const parsedDateTime = parse(time, 'HHmmss.SSS');
 
-  return format(parsedDateTime, strFormat);
+  // return format(parsedDateTime, strFormat);
+  return '24:12:12';
 }
