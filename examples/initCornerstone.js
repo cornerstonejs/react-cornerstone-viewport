@@ -28,19 +28,20 @@ cornerstoneTools.toolColors.setActiveColor('rgb(0, 255, 0)');
 
 cornerstoneTools.store.state.touchProximity = 40;
 
-const config = {
-  maxWebWorkers: Math.max(navigator.hardwareConcurrency - 1, 1),
+window.cornerstone = cornerstone;
+
+cornerstoneWADOImageLoader.external.cornerstone = cornerstone;
+cornerstoneWADOImageLoader.external.dicomParser = dicomParser;
+
+var config = {
+  maxWebWorkers: navigator.hardwareConcurrency || 1,
   startWebWorkersOnDemand: true,
   taskConfiguration: {
     decodeTask: {
       initializeCodecsOnStartup: false,
       usePDFJS: false,
-      strict: false
-    }
-  }
+      strict: false,
+    },
+  },
 };
-
 cornerstoneWADOImageLoader.webWorkerManager.initialize(config);
-
-cornerstoneWADOImageLoader.external.cornerstone = cornerstone;
-cornerstoneWADOImageLoader.external.dicomParser = dicomParser;
