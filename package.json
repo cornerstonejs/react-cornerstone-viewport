@@ -16,7 +16,7 @@
   "scripts": {
     "build": "rollup -c",
     "build:release": "rollup -c",
-    "build:examples": "rollup -c",
+    "build:examples": "webpack --progress --colors --config ./.webpack/webpack.dev.js -d",
     "cm": "npx git-cz",
     "dev": "webpack-dev-server --config ./.webpack/webpack.dev.js --watch",
     "start": "npm run dev",
