@@ -65,11 +65,7 @@ export default App;
             </p>
           </div>
           <div className="col-xs-12 col-lg-6" style={style}>
-            <CornerstoneViewport
-              viewportData={exampleData}
-              cornerstone={cornerstone}
-              cornerstoneTools={cornerstoneTools}
-            />
+            <CornerstoneViewport viewportData={exampleData} />
           </div>
         </div>
       </div>
