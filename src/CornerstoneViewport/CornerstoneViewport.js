@@ -40,33 +40,6 @@ function initializeTools(cornerstoneTools, tools, element) {
   });
 }
 
-function areLayoutsEqual(a, b, viewportIndex = 0) {
-  const notEqual = false;
-  const viewportsExist =
-    a &&
-    b &&
-    a.viewports &&
-    b.viewports &&
-    a.viewports.length > 0 &&
-    b.viewports.length > 0;
-  const wasNotSetAndNowIs = (!a && b) || (!a.viewports && !b.viewports);
-  const hasNumViewportsChanged =
-    viewportsExist && a.viewports.length !== b.viewports.length;
-
-  if (wasNotSetAndNowIs || hasNumViewportsChanged) {
-    return notEqual;
-  }
-
-  const aViewport = a.viewports[viewportIndex];
-  const bViewport = b.viewports[viewportIndex];
-
-  return viewportsEqual(aViewport, bViewport);
-}
-
-function viewportsEqual(a, b) {
-  return a.height === b.height && a.width === b.width;
-}
-
 class CornerstoneViewport extends Component {
   static defaultProps = {
     activeTool: 'Wwwc',
