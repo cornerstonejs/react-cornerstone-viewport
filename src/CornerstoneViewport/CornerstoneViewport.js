@@ -12,32 +12,8 @@ import './CornerstoneViewport.css';
 const scrollToIndex = cornerstoneTools.importInternal('util/scrollToIndex');
 const { loadHandlerManager } = cornerstoneTools;
 
-function setToolsPassive(cornerstoneTools, tools) {
-  tools.forEach(tool => {
-    cornerstoneTools.setToolPassive(tool);
-  });
-}
-
 function capitalizeFirstLetter(string) {
   return string.charAt(0).toUpperCase() + string.slice(1);
-}
-
-function initializeTools(cornerstoneTools, tools, element) {
-  Array.from(tools).forEach(tool => {
-    const apiTool = cornerstoneTools[`${tool.name}Tool`] || tool.apiTool;
-    if (apiTool) {
-      cornerstoneTools.addToolForElement(element, apiTool, tool.props);
-    } else {
-      throw new Error(`Tool not found: ${tool.name}Tool`);
-    }
-
-    if (tool.mode) {
-      cornerstoneTools[`setTool${capitalizeFirstLetter(tool.mode)}ForElement`](
-        element,
-        tool.name
-      );
-    }
-  });
 }
 
 class CornerstoneViewport extends Component {
@@ -56,40 +32,30 @@ class CornerstoneViewport extends Component {
       isPlaying: false,
       cineFrameRate: 24,
     },
-    availableTools: [
-      { name: 'Pan', mouseButtonMasks: [1, 4] },
-      {
-        name: 'Zoom',
-        props: {
-          minScale: 0.3,
-          maxScale: 25,
-          preventZoomOutsideImage: true,
-        },
-        mouseButtonMasks: [1, 2],
-      },
-      { name: 'Wwwc', mouseButtonMasks: [1] },
-      { name: 'Bidirectional', mouseButtonMasks: [1] },
-      { name: 'Length', mouseButtonMasks: [1] },
-      { name: 'FreehandRoi', mouseButtonMasks: [1] },
-      { name: 'Angle', mouseButtonMasks: [1] },
-      { name: 'StackScroll', mouseButtonMasks: [1] },
-      { name: 'Brush', mouseButtonMasks: [1] },
-      { name: 'PanMultiTouch' },
-      { name: 'ZoomTouchPinch' },
-      { name: 'StackScrollMouseWheel' },
-      { name: 'StackScrollMultiTouch' },
-    ],
     viewportOverlayComponent: ViewportOverlay,
     shouldFitToWindowOnResize: false,
   };
 
   static propTypes = {
+    tools: PropTypes.arrayOf(
+      PropTypes.oneOfType([
+        // String
+        PropTypes.string,
+        // Object
+        PropTypes.shape({
+          name: PropTypes.string.isRequired, // Tool Name
+          toolClass: PropTypes.func, // Custom (ToolClass)
+          props: PropTypes.Object, // Props to Pass to `addTool`
+          mode: PropTypes.string, // Initial mode, if one other than default
+          modeOptions: PropTypes.Object, // { mouseButtonMask: [int] }
+        }),
+      ])
+    ),
     activeTool: PropTypes.string.isRequired,
     viewportData: PropTypes.object.isRequired,
     cornerstoneOptions: PropTypes.object.isRequired,
     enableStackPrefetch: PropTypes.bool.isRequired,
     cineToolData: PropTypes.object.isRequired,
-    availableTools: PropTypes.array.isRequired,
     onMeasurementsChanged: PropTypes.func,
     onElementEnabled: PropTypes.func,
     isActive: PropTypes.bool.isRequired,
@@ -432,28 +398,8 @@ class CornerstoneViewport extends Component {
         if (this.props.enableStackPrefetch) {
           cornerstoneTools.stackPrefetch.enable(this.element);
         }
-        initializeTools(cornerstoneTools, this.props.availableTools, element);
 
-        this.setActiveTool(this.props.activeTool);
-
-        /* For touch devices, by default we activate:
-          - Pinch to zoom
-          - Two-finger Pan
-          - Three (or more) finger Stack Scroll
-        */
-        cornerstoneTools.setToolActive('PanMultiTouch', {
-          mouseButtonMask: 0,
-          isTouchActive: true,
-        });
-        cornerstoneTools.setToolActive('ZoomTouchPinch', {
-          mouseButtonMask: 0,
-          isTouchActive: true,
-        });
-
-        cornerstoneTools.setToolActive('StackScrollMultiTouch', {
-          mouseButtonMask: 0,
-          isTouchActive: true,
-        });
+        // this.setActiveTool(this.props.activeTool);
 
         // TODO: We should probably configure this somewhere else
         cornerstoneTools.stackPrefetch.setConfiguration({
@@ -462,29 +408,9 @@ class CornerstoneViewport extends Component {
           maxSimultaneousRequests: 6,
         });
 
-        /* For mouse devices, by default we turn on:
-        - Stack scrolling by mouse wheel
-        - Stack scrolling by keyboard up / down arrow keys
-        - Pan with middle click
-        - Zoom with right click
-        */
-        cornerstoneTools.setToolActive('StackScrollMouseWheel', {
-          mouseButtonMask: 0,
-          isTouchActive: true,
-        });
+        _addAndConfigureInitialToolsForElement(this.props.tools, this.element);
 
-        this.setState({
-          viewportHeight: `${this.element.clientHeight - 20}px`,
-        });
-
-        // Our `doneLoadingHandler` isn't firing for the initial image load
-        // Dropping this here, as the image should definitely be loaded at this point,
-        // and we can force the loading state off. TODO: investigate
-        setTimeout(() => {
-          this.setState({
-            isLoading: false,
-          });
-        }, CornerstoneViewport.loadIndicatorDelay);
+        this.setState({ isLoading: false });
       },
       error => {
         console.error(error);
@@ -706,52 +632,11 @@ class CornerstoneViewport extends Component {
   }
 
   setActiveTool = activeTool => {
-    // TODO: cache these, update it on componentDidUpdate
-    const leftMouseToolNames = this.props.availableTools
-      .filter(tool => {
-        if (!tool.mouseButtonMasks) {
-          return;
-        }
-
-        return tool.mouseButtonMasks.includes(1);
-      })
-      .map(tool => tool.name);
-
-    const leftMouseToolsWithAnotherButtonMask = this.props.availableTools.filter(
-      tool => {
-        if (!tool.mouseButtonMasks) {
-          return;
-        }
-
-        return (
-          tool.mouseButtonMasks.includes(1) && tool.mouseButtonMasks.length > 1
-        );
-      }
-    );
-
-    try {
-      setToolsPassive(cornerstoneTools, leftMouseToolNames);
-    } catch (error) {
-      // TODO: Looks like the Brush tool is calling updateImage, which is
-      // failing because the image is not available yet in the enabledElement?
-      // (Although I would have expected it to be there after displayImage is
-      // called...)
-      console.warn(error);
-    }
-
-    // This turns e.g. the Zoom and Pan tools back to active, if they
-    // were bound to e.g. [1,2] or [1,4]
-    leftMouseToolsWithAnotherButtonMask.forEach(tool => {
-      const mouseButtonMask = tool.mouseButtonMasks.filter(mask => mask !== 1);
-      cornerstoneTools.setToolActive(tool.name, {
-        mouseButtonMask,
-      });
-    });
-
-    cornerstoneTools.setToolActive(activeTool, {
-      mouseButtonMask: 1,
-      isTouchActive: true,
-    });
+    // TODO:
+    // cornerstoneTools.setToolActive(activeTool, {
+    //   mouseButtonMask: 1,
+    //   isTouchActive: true,
+    // });
   };
 
   onStackScroll = event => {
@@ -861,5 +746,51 @@ class CornerstoneViewport extends Component {
     });
   };
 }
+
+/**
+ * Iterate over the provided tools; Add each tool to the
+ *
+ * @param {string[]|object[]} tools
+ * @param {HTMLElement} element
+ */
+function _addAndConfigureInitialToolsForElement(tools, element) {
+  for (let i = 0; i < tools.length; i++) {
+    const tool =
+      typeof tools[i] === 'string'
+        ? { name: tools[i] }
+        : Object.assign({}, tools[i]);
+    const toolName = `${tool.name}Tool`; // Top level CornerstoneTools follow this pattern
+
+    tool.toolClass = tool.toolClass || cornerstoneTools[toolName];
+
+    if (!tool.toolClass) {
+      console.warn(`Unable to add tool with name '${tool.name}'.`);
+      continue;
+    }
+
+    cornerstoneTools.addToolForElement(
+      element,
+      tool.toolClass,
+      tool.props || {}
+    );
+
+    const hasInitialMode =
+      tool.mode && AVAILABLE_TOOL_MODES.includes(tool.mode);
+
+    if (hasInitialMode) {
+      const setToolModeFn = TOOL_MODE_FUNCTIONS[tool.mode];
+      setToolModeFn(element, tool.name, tool.modeOptions || {});
+    }
+  }
+}
+
+const AVAILABLE_TOOL_MODES = ['active', 'passive', 'enabled', 'disabled'];
+
+const TOOL_MODE_FUNCTIONS = {
+  active: cornerstoneTools.setToolActiveForElement,
+  passive: cornerstoneTools.setToolPassiveForElement,
+  enabled: cornerstoneTools.setToolEnabledForElement,
+  disabled: cornerstoneTools.setToolDisabledForElement,
+};
 
 export default CornerstoneViewport;
