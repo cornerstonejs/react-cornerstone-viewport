@@ -91,7 +91,6 @@ class CornerstoneViewport extends Component {
       stack,
       displaySetInstanceUid: props.viewportData.displaySetInstanceUid,
       imageId: stack.imageIds[stack.currentImageIdIndex || 0],
-      viewportHeight: '100%',
       isLoading: true,
       numImagesLoaded: 0,
       error: null,
@@ -99,9 +98,6 @@ class CornerstoneViewport extends Component {
     };
 
     //   cornerstone.resize(this.element, props.shouldFitToWindowOnResize);
-    //   this.setState({
-    //     viewportHeight: `${this.element.clientHeight - 20}px`,
-    //   });
 
     this.updateViewportSpecificData();
   }
@@ -181,6 +177,11 @@ class CornerstoneViewport extends Component {
       className += ' active';
     }
 
+    const scrollbarMax = this.state.stack.imageIds.length - 1;
+    const scrollbarHeight = this.element
+      ? `${this.element.clientHeight - 20}px`
+      : '100px';
+
     return (
       <div className={className}>
         <div
@@ -203,9 +204,9 @@ class CornerstoneViewport extends Component {
         </div>
         <ImageScrollbar
           onInputCallback={this.imageSliderOnInputCallback}
-          max={this.state.stack.imageIds.length - 1}
+          max={scrollbarMax}
+          height={scrollbarHeight}
           value={this.state.stack.currentImageIdIndex}
-          height={this.state.viewportHeight}
         />
         {this.props.children}
       </div>
