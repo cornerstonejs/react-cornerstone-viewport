@@ -1,3 +1,11 @@
+// - Fix `imageId` reliance for metadata?
+//
+// - start/end load Handlers may need to share w/ props, as there can only be one
+//
+// - After getting everything to work w/o updates, phase in changes that should be reactive from props.
+//
+// yarn link to extension -- special note of props specific to pulling out state?
+
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import ImageScrollbar from '../ImageScrollbar/ImageScrollbar.js';
@@ -12,38 +20,30 @@ import './CornerstoneViewport.css';
 const scrollToIndex = cornerstoneTools.importInternal('util/scrollToIndex');
 const { loadHandlerManager } = cornerstoneTools;
 
-function capitalizeFirstLetter(string) {
-  return string.charAt(0).toUpperCase() + string.slice(1);
-}
-
 class CornerstoneViewport extends Component {
   static defaultProps = {
-    activeTool: 'Wwwc',
-    viewportData: {
-      stack: {
-        imageIds: [],
-        currentImageIdIndex: 0,
-      },
-    },
-    isActive: false,
+    imageIdIndex: 0,
     cornerstoneOptions: {},
-    enableStackPrefetch: true,
+    isStackPrefetchEnabled: true,
     cineToolData: {
       isPlaying: false,
       cineFrameRate: 24,
     },
     viewportOverlayComponent: ViewportOverlay,
-    shouldFitToWindowOnResize: false,
   };
 
   static propTypes = {
+    imageIds: PropTypes.arrayOf(PropTypes.string).isRequired,
+    imageIdIndex: PropTypes.number,
+    // Controlled
+    activeTool: PropTypes.string,
     tools: PropTypes.arrayOf(
       PropTypes.oneOfType([
         // String
         PropTypes.string,
         // Object
         PropTypes.shape({
-          name: PropTypes.string.isRequired, // Tool Name
+          name: PropTypes.string, // Tool Name
           toolClass: PropTypes.func, // Custom (ToolClass)
           props: PropTypes.Object, // Props to Pass to `addTool`
           mode: PropTypes.string, // Initial mode, if one other than default
@@ -51,31 +51,27 @@ class CornerstoneViewport extends Component {
         }),
       ])
     ),
-    activeTool: PropTypes.string.isRequired,
-    viewportData: PropTypes.object.isRequired,
-    cornerstoneOptions: PropTypes.object.isRequired,
-    enableStackPrefetch: PropTypes.bool.isRequired,
-    cineToolData: PropTypes.object.isRequired,
-    onMeasurementsChanged: PropTypes.func,
-    onElementEnabled: PropTypes.func,
-    isActive: PropTypes.bool.isRequired,
-    layout: PropTypes.object,
+    // Optional
+    // isActive ?? classname -> active
     children: PropTypes.node,
-    onDoubleClick: PropTypes.func,
-    onRightClick: PropTypes.func,
-    onMouseClick: PropTypes.func,
-    onTouchPress: PropTypes.func,
-    onNewImage: PropTypes.func,
-    onTouchStart: PropTypes.func,
-    setViewportActive: PropTypes.func,
-    setViewportSpecificData: PropTypes.func,
-    clearViewportSpecificData: PropTypes.func,
+    cornerstoneOptions: PropTypes.object, // cornerstone.enable options
+    isStackPrefetchEnabled: PropTypes.bool, // should prefetch?
+    //
+    cineToolData: PropTypes.object.isRequired,
+    setViewportActive: PropTypes.func, // Called when viewport should be set to active?
     viewportOverlayComponent: PropTypes.oneOfType([
       PropTypes.string,
       PropTypes.func,
     ]),
-    shouldFitToWindowOnResize: PropTypes.bool,
-    viewportIndex: PropTypes.number,
+    // Cornerstone Events
+    onElementEnabled: PropTypes.func, // Escape hatch
+    eventListeners: PropTypes.arrayOf(
+      PropTypes.shape({
+        target: PropTypes.oneOf(['element', 'cornerstone']).isRequired,
+        eventName: PropTypes.string.isRequired,
+        handler: PropTypes.func.isRequired,
+      })
+    ),
   };
 
   static loadIndicatorDelay = 45;
@@ -83,101 +79,98 @@ class CornerstoneViewport extends Component {
   constructor(props) {
     super(props);
 
-    // TODO: Allow viewport as a prop
-    const viewportDataStack = props.viewportData.stack;
-    const stack = Object.assign({}, viewportDataStack);
+    const imageIdIndex = props.imageIdIndex;
+    const imageId = props.imageIds[imageIdIndex];
 
     this.state = {
-      stack,
-      displaySetInstanceUid: props.viewportData.displaySetInstanceUid,
-      imageId: stack.imageIds[stack.currentImageIdIndex || 0],
+      // Used for metadata lookup (imagePlane, orientation markers)
+      // We can probs grab this once and hold on to? (updated on newImage)
+      imageId,
+      imageIdIndex, // Maybe
       isLoading: true,
       numImagesLoaded: 0,
       error: null,
-      viewport: cornerstone.getDefaultViewport(null, undefined),
+      // Overlay
+      scale: undefined,
+      windowWidth: undefined,
+      windowCenter: undefined,
+      // Orientation Markers
+      rotationDegrees: undefined,
+      isFlippedVertically: undefined,
+      isFlippedHorizontally: undefined,
     };
 
-    //   cornerstone.resize(this.element, props.shouldFitToWindowOnResize);
-
-    this.updateViewportSpecificData();
+    // TODO: Deep Copy? How does that work w/ handlers?
+    // Save a copy. Props could change before `willUnmount`
+    this.eventListeners = this.props.eventListeners;
   }
 
   /**
-   * Updates viewportSpecificData only if new image is displayed for the same study and display set (stack scroll, cine play, etc.)
+   *
+   *
+   * @returns
+   * @memberof CornerstoneViewport
    */
-  updateViewportSpecificData = () => {
-    if (!this.props.setViewportSpecificData) {
-      return;
-    }
-
-    const stateStack = this.state.stack;
-    const viewportDataStack = this.props.viewportData.stack;
-
-    // Skip if study or display set was changed
-    if (
-      stateStack.displaySetInstanceUid !==
-        viewportDataStack.displaySetInstanceUid ||
-      stateStack.studyInstanceUid !== viewportDataStack.studyInstanceUid
-    ) {
-      return;
-    }
-
-    // Skip if image was not changed
-    if (
-      stateStack.sopInstanceUid &&
-      viewportDataStack.sopInstanceUid &&
-      stateStack.currentImageIdIndex ===
-        viewportDataStack.currentImageIdIndex &&
-      stateStack.sopInstanceUid === viewportDataStack.sopInstanceUid
-    ) {
-      return;
-    }
-
-    const stackData = cornerstoneTools.getToolState(this.element, 'stack');
-    let stack = stackData && stackData.data[0];
-
-    // Use viewport stack if cornerstone stack is not ready yet
-    if (!stack) {
-      stack = viewportDataStack;
-    }
-
-    const imageId = stack.imageIds[stack.currentImageIdIndex];
-    const sopCommonModule = cornerstone.metaData.get(
-      'sopCommonModule',
-      imageId
-    );
-    if (!sopCommonModule) {
-      return;
-    }
-
-    this.props.setViewportSpecificData({
-      displaySetInstanceUid: stack.displaySetInstanceUid,
-      studyInstanceUid: stack.studyInstanceUid,
-      currentImageIdIndex: stack.currentImageIdIndex,
-      sopInstanceUid: sopCommonModule.sopInstanceUID,
-    });
-  };
-
   getOverlay() {
-    const { viewportOverlayComponent: Component } = this.props;
-    const { imageId, stack, viewport } = this.state;
+    const { viewportOverlayComponent: Component, imageIds } = this.props;
+    const { imageIdIndex, scale, windowWidth, windowCenter } = this.state;
+    const imageId = imageIds[imageIdIndex];
 
-    return <Component stack={stack} viewport={viewport} imageId={imageId} />;
+    return (
+      imageId &&
+      windowWidth && (
+        <Component
+          imageIndex={imageIdIndex + 1}
+          stackSize={imageIds.length}
+          scale={scale}
+          windowWidth={windowWidth}
+          windowCenter={windowCenter}
+          imageId={imageId}
+        />
+      )
+    );
+  }
+
+  /**
+   *
+   *
+   * @returns
+   * @memberof CornerstoneViewport
+   */
+  getOrientationMarkersOverlay() {
+    const { imageIds } = this.props;
+    const {
+      imageIdIndex,
+      rotationDegrees,
+      isFlippedVertically,
+      isFlippedHorizontally,
+    } = this.state;
+    const imageId = imageIds[imageIdIndex];
+    const { rowCosines, columnCosines } =
+      cornerstone.metaData.get('imagePlaneModule', imageId) || {};
+
+    if (!rowCosines || !columnCosines || rotationDegrees === undefined) {
+      return false;
+    }
+
+    return (
+      <ViewportOrientationMarkers
+        rowCosines={rowCosines}
+        columnCosines={columnCosines}
+        rotationDegrees={rotationDegrees}
+        isFlippedVertically={isFlippedVertically}
+        isFlippedHorizontally={isFlippedHorizontally}
+      />
+    );
   }
 
   render() {
     const isLoading = this.state.isLoading;
-    // TODO: Check this later
-    // || this.state.numImagesLoaded < 1;
-
     const displayLoadingIndicator = isLoading || this.state.error;
 
     let className = 'CornerstoneViewport';
-    if (this.props.isActive) {
-      className += ' active';
-    }
 
-    const scrollbarMax = this.state.stack.imageIds.length - 1;
+    const scrollbarMax = this.props.imageIds.length - 1;
     const scrollbarHeight = this.element
       ? `${this.element.clientHeight - 20}px`
       : '100px';
@@ -186,8 +179,8 @@ class CornerstoneViewport extends Component {
       <div className={className}>
         <div
           className="viewport-element"
-          onContextMenu={this.onContextMenu}
-          data-viewport-index={this.props.viewportIndex}
+          onContextMenu={e => e.preventDefault()}
+          onMouseDown={e => e.preventDefault()}
           ref={input => {
             this.element = input;
           }}
@@ -197,466 +190,319 @@ class CornerstoneViewport extends Component {
           )}
           <canvas className="cornerstone-canvas" />
           {this.getOverlay()}
-          <ViewportOrientationMarkers
-            imageId={this.state.imageId}
-            viewport={this.state.viewport}
-          />
+          {this.getOrientationMarkersOverlay()}
         </div>
         <ImageScrollbar
           onInputCallback={this.imageSliderOnInputCallback}
           max={scrollbarMax}
           height={scrollbarHeight}
-          value={this.state.stack.currentImageIdIndex}
+          value={this.state.imageIdIndex}
         />
         {this.props.children}
       </div>
     );
   }
 
-  /**
-   * Preventing the default behaviour for right-click is essential to
-   * allow right-click tools to work.
-   *
-   * @param event
-   */
-  onContextMenu = event => {
-    event.preventDefault();
-  };
+  // ~~ LIFECYCLE
+  async componentDidMount() {
+    console.warn('CornerstoneViewport: componentDidMount');
+    const {
+      tools,
+      isStackPrefetchEnabled,
+      cornerstoneOptions,
+      imageIds,
+    } = this.props;
+    const { imageIdIndex } = this.state;
+    const imageId = imageIds[imageIdIndex];
 
-  onImageRendered = event => {
-    this.setState({
-      viewport: Object.assign({}, event.detail.viewport),
-    });
-  };
+    // EVENTS
+    this._bindInternalEventListeners();
+    this._bindExternalEventListeners();
+    this._handleOnElementEnabledEvent();
 
-  onNewImage = event => {
-    this.setState({
-      imageId: event.detail.image.imageId,
-    });
+    // Fire 'er up
+    cornerstone.enable(this.element, cornerstoneOptions);
 
-    if (this.props.onNewImage) {
-      this.props.onNewImage(event);
-    }
-
-    this.updateViewportSpecificData();
-  };
-
-  componentDidMount() {
-    const element = this.element;
-    this.eventHandlerData = [
-      {
-        eventTarget: element,
-        eventType: cornerstone.EVENTS.IMAGE_RENDERED,
-        handler: this.onImageRendered,
-      },
-      {
-        eventTarget: element,
-        eventType: cornerstone.EVENTS.NEW_IMAGE,
-        handler: this.onNewImage,
-      },
-      {
-        eventTarget: element,
-        eventType: cornerstoneTools.EVENTS.STACK_SCROLL,
-        handler: this.onStackScroll,
-      },
-      {
-        eventTarget: element,
-        eventType: cornerstoneTools.EVENTS.MEASUREMENT_ADDED,
-        handler: this.onMeasurementAdded,
-      },
-      {
-        eventTarget: element,
-        eventType: cornerstoneTools.EVENTS.MEASUREMENT_MODIFIED,
-        handler: this.onMeasurementModified,
-      },
-      {
-        eventTarget: element,
-        eventType: cornerstoneTools.EVENTS.MEASUREMENT_REMOVED,
-        handler: this.onMeasurementRemoved,
-      },
-      {
-        eventTarget: element,
-        eventType: cornerstoneTools.EVENTS.LABELMAP_MODIFIED,
-        handler: this.onLabelmapModified,
-      },
-      {
-        eventTarget: element,
-        eventType: cornerstoneTools.EVENTS.MOUSE_CLICK,
-        handler: this.onMouseClick,
-      },
-      {
-        eventTarget: element,
-        eventType: cornerstoneTools.EVENTS.MOUSE_DOWN,
-        handler: this.onMouseClick,
-      },
-      {
-        eventTarget: element,
-        eventType: cornerstoneTools.EVENTS.TOUCH_PRESS,
-        handler: this.onTouchPress,
-      },
-      {
-        eventTarget: element,
-        eventType: cornerstoneTools.EVENTS.TOUCH_START,
-        handler: this.onTouchStart,
-      },
-      {
-        eventTarget: element,
-        eventType: cornerstoneTools.EVENTS.DOUBLE_CLICK,
-        handler: this.onDoubleClick,
-      },
-      {
-        eventTarget: element,
-        eventType: cornerstoneTools.EVENTS.DOUBLE_TAP,
-        handler: this.onDoubleClick,
-      },
-      {
-        eventTarget: cornerstone.events,
-        eventType: cornerstone.EVENTS.IMAGE_LOADED,
-        handler: this.onImageLoaded,
-      },
-    ];
-
-    this.eventHandlerData.forEach(data => {
-      const { eventTarget, eventType, handler } = data;
-
-      eventTarget.addEventListener(eventType, handler);
-    });
-
-    // Pass ELEMENT_ENABLED event to parent
-    const onElementEnabledFn = evt => {
-      const enabledElement = evt.detail.element;
-      if (enabledElement === this.element) {
-        if (this.props.onElementEnabled) {
-          this.props.onElementEnabled(evt);
-        }
-        cornerstone.events.removeEventListener(
-          cornerstone.EVENTS.ELEMENT_ENABLED,
-          onElementEnabledFn
-        );
-      }
-    };
-
-    cornerstone.events.addEventListener(
-      cornerstone.EVENTS.ELEMENT_ENABLED,
-      onElementEnabledFn
-    );
-    cornerstone.enable(element, this.props.cornerstoneOptions);
-
+    // TODO: careful.. There can only be one
     loadHandlerManager.setStartLoadHandler(
       this.startLoadingHandler,
       this.element
     );
     loadHandlerManager.setEndLoadHandler(this.doneLoadingHandler, this.element);
 
-    // Handle the case where the imageId isn't loaded correctly and the
-    // imagePromise returns undefined
-    // To test, uncomment the next line
-    //let imageId = 'AfileThatDoesntWork'; // For testing only!
-
-    const { imageId } = this.state;
-    let imagePromise;
     try {
-      imagePromise = cornerstone.loadAndCacheImage(imageId);
+      // Load first image in stack
+      const image = await cornerstone.loadAndCacheImage(imageId);
+
+      // Display
+      cornerstone.displayImage(this.element, image);
+      // Setup "Stack State"
+      cornerstoneTools.clearToolState(this.element, 'stack');
+      cornerstoneTools.addStackStateManager(this.element, [
+        'stack',
+        'playClip',
+        'referenceLines',
+      ]);
+      cornerstoneTools.addToolState(this.element, 'stack', {
+        imageIds: [...imageIds],
+        currentImageIdIndex: imageIdIndex,
+      });
+
+      if (isStackPrefetchEnabled) {
+        _enableStackPrefetching(this.element);
+      }
+
+      _addAndConfigureInitialToolsForElement(tools, this.element);
+      this.trySetActiveTool();
+      this.setState({ isLoading: false });
     } catch (error) {
       console.error(error);
-      if (!imagePromise) {
-        this.setState({ error });
-        return;
-      }
+      this.setState({ error });
+    }
+  }
+
+  // I pretty much only care here if the stack's updated, right?
+  async componentDidUpdate(prevProps, prevState) {
+    console.warn('componentDidUpdate');
+
+    // TODO: Expensive compare?
+    // `componentDidUpdate` is currently called every render and `newImage`
+    const { imageIds: stack, imageIdIndex: imageIndex } = this.props;
+    const { imageIds: prevStack, imageIdIndex: prevImageIndex } = prevProps;
+    const isStackChanged = !_areStringArraysEqual(prevStack, stack);
+    const isImageIndexChanged = imageIndex !== prevImageIndex;
+
+    if (isStackChanged) {
+      console.warn('~~~~~~~ stack changed');
+      // update stack toolstate
+      cornerstoneTools.clearToolState(this.element, 'stack');
+      cornerstoneTools.addToolState(this.element, 'stack', {
+        imageIds: [...stack],
+        currentImageIdIndex: imageIndex,
+      });
+
+      // reset viewport (fit to window)
+      // load + display image
+    } else if (!isStackChanged && isImageIndexChanged) {
+      console.log('scrolling!');
+      scrollToIndex(this.element, imageIndex);
     }
 
-    // Load the first image in the stack
-    imagePromise.then(
-      image => {
-        try {
-          cornerstone.getEnabledElement(element);
-        } catch (error) {
-          // Handle cases where the user ends the session before the image is displayed.
-          console.error(error);
-          return;
-        }
+    //   try {
+    //     // TODO: Why is this here?
+    //     // cornerstoneTools.stackPrefetch.disable(this.element);
 
-        // Set Soft Tissue preset for all images by default
-        const viewport = cornerstone.getDefaultViewportForImage(element, image);
+    //     // TODO: Handle cases where the user ends the session before the image is displayed.
+    //     const image = await cornerstone.loadAndCacheImage(imageId);
 
-        // Display the first image
-        cornerstone.displayImage(element, image, viewport);
+    //     cornerstone.displayImage(this.element, image);
 
-        // Clear any previous tool state
-        cornerstoneTools.clearToolState(this.element, 'stack');
+    //     // TODO: We just re-enable it?
+    //     // cornerstoneTools.stackPrefetch.enable(this.element);
+    //   } catch (err) {}
 
-        /* Add the stack tool state to the enabled element, and
-           add stack state managers for the stack tool, CINE tool, and reference lines
-        */
-        const stack = this.state.stack;
-        cornerstoneTools.addStackStateManager(element, [
-          'stack',
-          'playClip',
-          'referenceLines',
-        ]);
-        cornerstoneTools.addToolState(element, 'stack', stack);
+    //   if (this.props.activeTool !== prevProps.activeTool) {
+    //     this.setActiveTool(this.props.activeTool);
+    //   }
 
-        if (this.props.enableStackPrefetch) {
-          cornerstoneTools.stackPrefetch.enable(this.element);
-        }
+    //   // TODO: int, 0 is paused?
+    //   if (
+    //     this.props.cineToolData.isPlaying !== prevProps.cineToolData.isPlaying
+    //   ) {
+    //     if (this.props.cineToolData.isPlaying) {
+    //       cornerstoneTools.playClip(this.element);
+    //     } else {
+    //       cornerstoneTools.stopClip(this.element);
+    //     }
+    //   }
 
-        // this.setActiveTool(this.props.activeTool);
+    //   if (
+    //     this.props.cineToolData.cineFrameRate !==
+    //     prevProps.cineToolData.cineFrameRate
+    //   ) {
+    //     if (this.props.cineToolData.isPlaying) {
+    //       cornerstoneTools.playClip(
+    //         this.element,
+    //         this.props.cineToolData.cineFrameRate
+    //       );
+    //     } else {
+    //       cornerstoneTools.stopClip(
+    //         this.element,
+    //         this.props.cineToolData.cineFrameRate
+    //       );
+    //     }
+    //   }
+  }
 
-        // TODO: We should probably configure this somewhere else
-        cornerstoneTools.stackPrefetch.setConfiguration({
-          maxImagesToPrefetch: Infinity,
-          preserveExistingPool: false,
-          maxSimultaneousRequests: 6,
-        });
+  componentWillUnmount() {
+    const clear = true;
 
-        _addAndConfigureInitialToolsForElement(this.props.tools, this.element);
+    this._bindInternalEventListeners(clear);
+    this._bindExternalEventListeners(clear);
+    cornerstoneTools.clearToolState(this.element, 'stackPrefetch');
+    cornerstoneTools.stopClip(this.element);
+    cornerstone.disable(this.element);
+  }
 
-        this.setState({ isLoading: false });
-      },
-      error => {
-        console.error(error);
+  /**
+   *
+   *
+   * @param {boolean} [clear=false]
+   * @memberof CornerstoneViewport
+   */
+  _bindInternalEventListeners(clear = false) {
+    const addOrRemoveEventListener = clear
+      ? 'removeEventListener'
+      : 'addEventListener';
 
-        this.setState({
-          error,
-        });
-      }
+    // Updates state's imageId, and imageIndex
+    this.element[addOrRemoveEventListener](
+      cornerstone.EVENTS.NEW_IMAGE,
+      this.onNewImage
+    );
+
+    // Updates state's viewport
+    this.element[addOrRemoveEventListener](
+      cornerstone.EVENTS.IMAGE_RENDERED,
+      this.onImageRendered
+    );
+
+    // Set Viewport Active
+    this.element[addOrRemoveEventListener](
+      cornerstoneTools.EVENTS.MOUSE_CLICK,
+      this.setViewportActive
+    );
+    this.element[addOrRemoveEventListener](
+      cornerstoneTools.EVENTS.MOUSE_DOWN,
+      this.setViewportActive
+    );
+    this.element[addOrRemoveEventListener](
+      cornerstoneTools.EVENTS.TOUCH_PRESS,
+      this.setViewportActive
+    );
+    this.element[addOrRemoveEventListener](
+      cornerstoneTools.EVENTS.TOUCH_START,
+      this.setViewportActive
+    );
+    this.element[addOrRemoveEventListener](
+      cornerstoneTools.EVENTS.STACK_SCROLL,
+      this.setViewportActive
     );
   }
 
-  onDoubleClick = event => {
-    if (this.props.onDoubleClick) {
-      this.props.onDoubleClick(event);
+  /**
+   *
+   * @param {boolean} [clear=false]
+   */
+  _bindExternalEventListeners(clear = false) {
+    if (!this.eventListeners) {
+      return;
     }
-  };
 
-  componentWillUnmount() {
-    this.eventHandlerData.forEach(data => {
-      const { eventTarget, eventType, handler } = data;
+    const cornerstoneEvents = Object.values(cornerstone.EVENTS);
+    const cornerstoneToolsEvents = Object.values(cornerstoneTools.EVENTS);
+    const addOrRemoveEventListener = clear
+      ? 'removeEventListener'
+      : 'addEventListener';
 
-      eventTarget.removeEventListener(eventType, handler);
-    });
+    for (let i = 0; i < this.eventListeners.length; i++) {
+      const { target: targetType, eventName, handler } = this.eventListeners[i];
+      const target =
+        targetType === 'element' ? this.element : cornerstone.events;
 
-    const element = this.element;
+      if (
+        !cornerstoneEvents.includes(eventName) &&
+        !cornerstoneToolsEvents.includes(eventName)
+      ) {
+        console.warn(
+          `No cornerstone or cornerstone-tools event exists for event name: ${eventName}`
+        );
+        continue;
+      }
 
-    // Clear the stack prefetch data
-    // TODO[cornerstoneTools]: Make this happen internally
-    cornerstoneTools.clearToolState(element, 'stackPrefetch');
-
-    // Try to stop any currently playing clips
-    // Otherwise the interval will continuously throw errors
-    // TODO[cornerstoneTools]: Make this happen internally
-    const enabledElement = cornerstone.getEnabledElement(element);
-    if (enabledElement) {
-      cornerstoneTools.stopClip(element);
-    }
-    // Disable the viewport element with Cornerstone
-    // This also triggers the removal of the element from all available
-    // synchronizers, such as the one used for reference lines.
-    cornerstone.disable(element);
-
-    if (this.props.clearViewportSpecificData) {
-      this.props.clearViewportSpecificData();
+      target[addOrRemoveEventListener](eventName, handler);
     }
   }
 
-  componentDidUpdate(prevProps) {
-    // TODO: Add a real object shallow comparison here?
-
-    if (
-      this.state.displaySetInstanceUid !==
-      this.props.viewportData.displaySetInstanceUid
-    ) {
-      const {
-        displaySetInstanceUid,
-        studyInstanceUid,
-      } = this.props.viewportData;
-
-      const currentImageIdIndex = this.props.viewportData.stack
-        .currentImageIdIndex;
-
-      const stack = this.props.viewportData.stack;
-      const stackData = cornerstoneTools.getToolState(this.element, 'stack');
-      let currentStack = stackData && stackData.data[0];
-
-      if (!currentStack) {
-        currentStack = {
-          displaySetInstanceUid,
-          studyInstanceUid,
-          currentImageIdIndex,
-          imageIds: stack.imageIds,
-        };
-
-        cornerstoneTools.addStackStateManager(this.element, ['stack']);
-        cornerstoneTools.addToolState(this.element, 'stack', currentStack);
-      } else {
-        // TODO: we should make something like setToolState by an ID
-        currentStack.displaySetInstanceUid = displaySetInstanceUid;
-        currentStack.studyInstanceUid = studyInstanceUid;
-        currentStack.currentImageIdIndex = currentImageIdIndex;
-        currentStack.imageIds = stack.imageIds;
-      }
-
-      const imageId =
-        currentStack.imageIds[currentImageIdIndex] || currentStack.imageIds[0];
-
-      this.setState({
-        displaySetInstanceUid,
-        studyInstanceUid,
-        stack,
-        imageId,
-      });
-
-      cornerstoneTools.stackPrefetch.disable(this.element);
-      cornerstone.loadAndCacheImage(imageId).then(image => {
-        try {
-          cornerstone.getEnabledElement(this.element);
-        } catch (error) {
-          // Handle cases where the user ends the session before the image is displayed.
-          console.error(error);
-          return;
+  /**
+   *
+   *
+   * @memberof CornerstoneViewport
+   */
+  _handleOnElementEnabledEvent = () => {
+    const handler = evt => {
+      const elementThatWasEnabled = evt.detail.element;
+      if (elementThatWasEnabled === this.element) {
+        // Pass Event
+        if (this.props.onElementEnabled) {
+          this.props.onElementEnabled(evt);
         }
-
-        const viewport = cornerstone.getDefaultViewportForImage(
-          this.element,
-          image
-        );
-
-        // Workaround for Cornerstone issue #304
-        viewport.displayedArea.brhc = {
-          x: image.width,
-          y: image.height,
-        };
-
-        cornerstone.displayImage(this.element, image, viewport);
-
-        cornerstoneTools.stackPrefetch.enable(this.element);
-      });
-    }
-
-    if (
-      this.state.stack.currentImageIdIndex !==
-        this.props.viewportData.stack.currentImageIdIndex &&
-      prevProps.viewportData.stack.currentImageIdIndex !==
-        this.props.viewportData.stack.currentImageIdIndex
-    ) {
-      const {
-        displaySetInstanceUid,
-        studyInstanceUid,
-      } = this.props.viewportData;
-
-      const currentImageIdIndex = this.props.viewportData.stack
-        .currentImageIdIndex;
-
-      const viewportDataStack = this.props.viewportData.stack;
-      const stack = Object.assign({}, viewportDataStack);
-      const stackData = cornerstoneTools.getToolState(this.element, 'stack');
-      let currentStack = stackData && stackData.data[0];
-
-      if (!currentStack) {
-        currentStack = {
-          displaySetInstanceUid,
-          studyInstanceUid,
-          currentImageIdIndex,
-          imageIds: stack.imageIds,
-        };
-
-        cornerstoneTools.addStackStateManager(this.element, ['stack']);
-        cornerstoneTools.addToolState(this.element, 'stack', currentStack);
-      } else {
-        scrollToIndex(this.element, currentImageIdIndex);
-
-        // TODO: we should make something like setToolState by an ID
-        currentStack.displaySetInstanceUid = displaySetInstanceUid;
-        currentStack.studyInstanceUid = studyInstanceUid;
-        currentStack.currentImageIdIndex = currentImageIdIndex;
-        currentStack.imageIds = stack.imageIds;
-      }
-
-      const imageId = currentStack.imageIds[currentImageIdIndex];
-
-      this.setState({
-        displaySetInstanceUid,
-        studyInstanceUid,
-        stack,
-        imageId,
-      });
-    }
-
-    if (this.props.activeTool !== prevProps.activeTool) {
-      this.setActiveTool(this.props.activeTool);
-
-      // TODO: Why do we need to do this in v3?
-      cornerstoneTools.setToolActive('StackScrollMouseWheel', {
-        mouseButtonMask: 0,
-        isTouchActive: true,
-      });
-    }
-
-    if (
-      this.props.enableStackPrefetch !== prevProps.enableStackPrefetch &&
-      this.props.enableStackPrefetch === true
-    ) {
-      cornerstoneTools.stackPrefetch.enable(this.element);
-    } else if (
-      this.props.enableStackPrefetch !== prevProps.enableStackPrefetch &&
-      this.props.enableStackPrefetch === false
-    ) {
-      cornerstoneTools.stackPrefetch.disable(this.element);
-    }
-
-    if (
-      this.props.cineToolData.isPlaying !== prevProps.cineToolData.isPlaying
-    ) {
-      if (this.props.cineToolData.isPlaying) {
-        cornerstoneTools.playClip(this.element);
-      } else {
-        cornerstoneTools.stopClip(this.element);
-      }
-    }
-
-    if (
-      this.props.cineToolData.cineFrameRate !==
-      prevProps.cineToolData.cineFrameRate
-    ) {
-      if (this.props.cineToolData.isPlaying) {
-        cornerstoneTools.playClip(
-          this.element,
-          this.props.cineToolData.cineFrameRate
-        );
-      } else {
-        cornerstoneTools.stopClip(
-          this.element,
-          this.props.cineToolData.cineFrameRate
+        // Stop Listening
+        cornerstone.events.removeEventListener(
+          cornerstone.EVENTS.ELEMENT_ENABLED,
+          handler
         );
       }
-    }
-  }
+    };
 
-  setActiveTool = activeTool => {
-    // TODO:
-    // cornerstoneTools.setToolActive(activeTool, {
-    //   mouseButtonMask: 1,
-    //   isTouchActive: true,
-    // });
+    // Start Listening
+    cornerstone.events.addEventListener(
+      cornerstone.EVENTS.ELEMENT_ENABLED,
+      handler
+    );
   };
 
-  onStackScroll = event => {
-    this.setViewportActive();
+  /**
+   *
+   * @param {string} [activeTool]
+   *
+   * @memberof CornerstoneViewport
+   */
+  trySetActiveTool = () => {
+    if (!this.props.activeTool) {
+      return;
+    }
 
-    const element = event.currentTarget;
-    const stackData = cornerstoneTools.getToolState(element, 'stack');
-    const stack = stackData.data[0];
+    cornerstoneTools.setToolActiveForElement(
+      this.element,
+      this.props.activeTool,
+      {
+        mouseButtonMask: 1,
+      }
+    );
+  };
+
+  // TODO: May need to throttle?
+  onImageRendered = event => {
+    const viewport = event.detail.viewport;
 
     this.setState({
-      stack,
+      scale: viewport.scale,
+      windowCenter: viewport.voi.windowCenter,
+      windowWidth: viewport.voi.windowWidth,
+      rotationDegrees: viewport.rotation,
+      isFlippedVertically: viewport.vflip,
+      isFlippedHorizontally: viewport.hflip,
     });
   };
 
-  onImageLoaded = () => {
+  onNewImage = event => {
+    const newImageId = event.detail.image.imageId;
+    const newImageIdIndex = this.props.imageIds.indexOf(newImageId);
+
+    // TODO: Should we grab and set some imageId specific metadata here?
+    // Could prevent cornerstone dependencies in child components.
     this.setState({
-      numImagesLoaded: this.state.numImagesLoaded + 1,
+      imageIdIndex: newImageIdIndex,
     });
   };
+
+  // onImageLoaded = () => {
+  //   // This is not necessarily true :thinking:
+  //   this.setState({
+  //     numImagesLoaded: this.state.numImagesLoaded + 1,
+  //   });
+  // };
 
   startLoadingHandler = () => {
     clearTimeout(this.loadHandlerTimeout);
@@ -674,82 +520,34 @@ class CornerstoneViewport extends Component {
     });
   };
 
-  onMeasurementAdded = event => {
-    if (this.props.onMeasurementsChanged) {
-      this.props.onMeasurementsChanged(event, 'added');
-    }
-  };
-
-  onMeasurementRemoved = event => {
-    if (this.props.onMeasurementsChanged) {
-      this.props.onMeasurementsChanged(event, 'removed');
-    }
-  };
-
-  onMeasurementModified = event => {
-    if (this.props.onMeasurementsChanged) {
-      this.props.onMeasurementsChanged(event, 'modified');
-    }
-  };
-
-  onLabelmapModified = event => {
-    if (this.props.onMeasurementsChanged) {
-      this.props.onMeasurementsChanged(event, 'labelmapModified');
-    }
-  };
-
-  setViewportActive = () => {
-    if (!this.props.isActive && this.props.setViewportActive) {
-      this.props.setViewportActive();
-    }
-  };
-
-  onMouseClick = event => {
-    this.setViewportActive();
-
-    if (event.detail.event.which === 3) {
-      if (this.props.onRightClick) {
-        this.props.onRightClick(event);
-      }
-    } else {
-      if (this.props.onMouseClick) {
-        this.props.onMouseClick(event);
-      }
-    }
-  };
-
-  onTouchPress = event => {
-    this.setViewportActive();
-
-    if (this.props.onTouchPress) {
-      this.props.onTouchPress(event);
-    }
-  };
-
-  onTouchStart = event => {
-    this.setViewportActive();
-
-    if (this.props.onTouchStart) {
-      this.props.onTouchStart(event);
-    }
-  };
-
   imageSliderOnInputCallback = value => {
     this.setViewportActive();
 
     scrollToIndex(this.element, value);
+  };
 
-    const stack = this.state.stack;
-    stack.currentImageIdIndex = value;
-
-    this.setState({
-      stack,
-    });
+  setViewportActive = () => {
+    if (this.props.setViewportActive) {
+      this.props.setViewportActive(); // TODO: should take viewport index/ident?
+    }
   };
 }
 
+// TODO: Move configuration elsewhere
+// This is app wide, right?
+// Why would we configure this per element?
+function _enableStackPrefetching(element) {
+  cornerstoneTools.stackPrefetch.setConfiguration({
+    maxImagesToPrefetch: Infinity,
+    preserveExistingPool: false,
+    maxSimultaneousRequests: 6,
+  });
+
+  cornerstoneTools.stackPrefetch.enable(element);
+}
+
 /**
- * Iterate over the provided tools; Add each tool to the
+ * Iterate over the provided tools; Add each tool to the target element
  *
  * @param {string[]|object[]} tools
  * @param {HTMLElement} element
@@ -779,6 +577,9 @@ function _addAndConfigureInitialToolsForElement(tools, element) {
       tool.mode && AVAILABLE_TOOL_MODES.includes(tool.mode);
 
     if (hasInitialMode) {
+      // TODO: We may need to check `tool.props` and the tool class's prototype
+      // to determine the name it registered with cornerstone. `tool.name` is not
+      // reliable.
       const setToolModeFn = TOOL_MODE_FUNCTIONS[tool.mode];
       setToolModeFn(element, tool.name, tool.modeOptions || {});
     }
@@ -793,5 +594,24 @@ const TOOL_MODE_FUNCTIONS = {
   enabled: cornerstoneTools.setToolEnabledForElement,
   disabled: cornerstoneTools.setToolDisabledForElement,
 };
+
+/**
+ * Compare equality of two string arrays
+ *
+ * @param {string[]} [arr1] - String array #1
+ * @param {string[]} [arr2] - String array #2
+ * @returns {boolean}
+ */
+function _areStringArraysEqual(arr1, arr2) {
+  if (arr1 === arr2) return true; // Identity
+  if (!arr1 || !arr2) return false; // One is undef/null
+  if (arr1.length !== arr2.length) return false; // Diff length
+
+  for (let i = 0; i < arr1.length; i++) {
+    if (arr1[i] !== arr2[i]) return false;
+  }
+
+  return true;
+}
 
 export default CornerstoneViewport;
