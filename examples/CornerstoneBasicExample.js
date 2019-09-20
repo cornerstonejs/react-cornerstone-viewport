@@ -1,11 +1,13 @@
 import React, { Component } from 'react';
-
-import './initCornerstone';
 import CornerstoneViewport from '@cornerstone-viewport';
 
 // https://github.com/conorhastings/react-syntax-highlighter
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { atomDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
+
+const style = {
+  height: '512px',
+};
 
 class CornerstoneBasicExample extends Component {
   state = {
@@ -43,10 +45,12 @@ class CornerstoneBasicExample extends Component {
 
   render() {
     return (
-      <CornerstoneViewport
-        tools={this.state.tools}
-        imageIds={this.state.imageIds}
-      />
+      <div style={style}>
+        <CornerstoneViewport
+          tools={this.state.tools}
+          imageIds={this.state.imageIds}
+        />
+      </div>
     );
   }
 }

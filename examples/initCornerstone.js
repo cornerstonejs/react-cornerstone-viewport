@@ -5,43 +5,41 @@ import cornerstoneMath from 'cornerstone-math';
 import cornerstoneTools from 'cornerstone-tools';
 import Hammer from 'hammerjs';
 
-cornerstoneTools.external.cornerstone = cornerstone;
-cornerstoneTools.external.Hammer = Hammer;
-cornerstoneTools.external.cornerstoneMath = cornerstoneMath;
+export default function initCornerstone() {
+  // Cornertone Tools
+  cornerstoneTools.external.cornerstone = cornerstone;
+  cornerstoneTools.external.Hammer = Hammer;
+  cornerstoneTools.external.cornerstoneMath = cornerstoneMath;
 
-cornerstoneTools.init();
+  //
+  cornerstoneTools.init();
 
-// Set the tool font and font size
-// context.font = "[style] [variant] [weight] [size]/[line height] [font family]";
-const fontFamily =
-  'Work Sans, Roboto, OpenSans, HelveticaNeue-Light, Helvetica Neue Light, Helvetica Neue, Helvetica, Arial, Lucida Grande, sans-serif';
-cornerstoneTools.textStyle.setFont(`16px ${fontFamily}`);
+  // Preferences
+  const fontFamily =
+    'Work Sans, Roboto, OpenSans, HelveticaNeue-Light, Helvetica Neue Light, Helvetica Neue, Helvetica, Arial, Lucida Grande, sans-serif';
+  cornerstoneTools.textStyle.setFont(`16px ${fontFamily}`);
+  cornerstoneTools.toolStyle.setToolWidth(2);
+  cornerstoneTools.toolColors.setToolColor('rgb(255, 255, 0)');
+  cornerstoneTools.toolColors.setActiveColor('rgb(0, 255, 0)');
 
-// Set the tool width
-cornerstoneTools.toolStyle.setToolWidth(2);
+  cornerstoneTools.store.state.touchProximity = 40;
 
-// Set color for inactive tools
-cornerstoneTools.toolColors.setToolColor('rgb(255, 255, 0)');
-
-// Set color for active tools
-cornerstoneTools.toolColors.setActiveColor('rgb(0, 255, 0)');
-
-cornerstoneTools.store.state.touchProximity = 40;
-
-window.cornerstone = cornerstone;
-
-cornerstoneWADOImageLoader.external.cornerstone = cornerstone;
-cornerstoneWADOImageLoader.external.dicomParser = dicomParser;
-
-var config = {
-  maxWebWorkers: navigator.hardwareConcurrency || 1,
-  startWebWorkersOnDemand: true,
-  taskConfiguration: {
-    decodeTask: {
-      initializeCodecsOnStartup: false,
-      usePDFJS: false,
-      strict: false,
+  // IMAGE LOADER
+  cornerstoneWADOImageLoader.external.cornerstone = cornerstone;
+  cornerstoneWADOImageLoader.external.dicomParser = dicomParser;
+  cornerstoneWADOImageLoader.webWorkerManager.initialize({
+    maxWebWorkers: navigator.hardwareConcurrency || 1,
+    startWebWorkersOnDemand: true,
+    taskConfiguration: {
+      decodeTask: {
+        initializeCodecsOnStartup: false,
+        usePDFJS: false,
+        strict: false,
+      },
     },
-  },
-};
-cornerstoneWADOImageLoader.webWorkerManager.initialize(config);
+  });
+
+  // Debug
+  window.cornerstone = cornerstone;
+  window.cornerstoneTools = cornerstoneTools;
+}

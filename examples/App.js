@@ -1,5 +1,8 @@
 import React, { Component } from 'react';
 import { BrowserRouter as Router, Route, Link, Switch } from 'react-router-dom';
+// https://github.com/conorhastings/react-syntax-highlighter
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
+import { atomDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
 // Routes
 import CornerstoneBasicExample from './CornerstoneBasicExample';
 
@@ -37,7 +40,7 @@ function ExampleEntry({ title, url, text, screenshotUrl }) {
 
 function Index() {
   const style = {
-    height: '512px',
+    minHeight: '512px',
   };
 
   const examples = [
@@ -64,21 +67,61 @@ function Index() {
           <p>
             This is a set of re-usable components for displaying data with{' '}
             <LinkOut
-              href={'https://github.com/Kitware/vtk-js'}
-              text={'VTK.js'}
+              href={'https://github.com/cornerstonejs/cornerstone'}
+              text={'cornerstone.js'}
             />
             .
-          </p>
-          <h4>Why does it exist?</h4>
-          <p>
-            To provide a simple starting point for developers that wish to build
-            applications on top of VTK.js.
           </p>
         </div>
 
         <div className="col-xs-12 col-lg-12" style={style}>
           <h3>Examples</h3>
           {exampleComponents}
+        </div>
+
+        <div className="col-xs-12 col-lg-12">
+          <h4>Gettting Started</h4>
+          <p>
+            All of these examples assume that the cornerstone family of
+            libraries have been imported and configured prior to use. Here is
+            breif example of what that may look like in ES6:
+          </p>
+          <SyntaxHighlighter
+            language="jsx"
+            showLineNumbers={true}
+            style={atomDark}
+          >
+            {`import dicomParser from 'dicom-parser';
+import cornerstone from 'cornerstone-core';
+import cornerstoneWADOImageLoader from 'cornerstone-wado-image-loader';
+import cornerstoneMath from 'cornerstone-math';
+import cornerstoneTools from 'cornerstone-tools';
+import Hammer from 'hammerjs';
+
+export default function initCornerstone() {
+
+  // Cornerstone Tools
+  cornerstoneTools.external.cornerstone = cornerstone;
+  cornerstoneTools.external.Hammer = Hammer;
+  cornerstoneTools.external.cornerstoneMath = cornerstoneMath;
+  cornerstoneTools.init();
+
+  // Image Loader
+  cornerstoneWADOImageLoader.external.cornerstone = cornerstone;
+  cornerstoneWADOImageLoader.external.dicomParser = dicomParser;
+  cornerstoneWADOImageLoader.webWorkerManager.initialize({
+    maxWebWorkers: navigator.hardwareConcurrency || 1,
+    startWebWorkersOnDemand: true,
+    taskConfiguration: {
+      decodeTask: {
+        initializeCodecsOnStartup: false,
+        usePDFJS: false,
+        strict: false,
+      },
+    },
+  });
+}`}
+          </SyntaxHighlighter>
         </div>
       </div>
     </div>
@@ -121,67 +164,3 @@ export default class App extends Component {
     return <AppRouter />;
   }
 }
-
-// export default class App extends Component {
-//   render() {
-//     const style = {
-//       height: '512px',
-//     };
-
-//         <div className="row">
-//           <div className="col-xs-12 col-lg-6">
-//             <SyntaxHighlighter
-//               language="jsx"
-//               showLineNumbers={true}
-//               style={atomDark}
-//             >
-//               {`import React from "react";
-// import CornerstoneViewport from 'react-cornerstone-viewport';
-
-// class App extends React.Component {
-//   render() {
-//     return (
-//       <CornerstoneViewport
-//       tools={[
-//         // Mouse
-//         {
-//           name: 'Wwwc',
-//           mode: 'active',
-//           modeOptions: { mouseButtonMask: 1 },
-//         },
-//         {
-//           name: 'Zoom',
-//           mode: 'active',
-//           modeOptions: { mouseButtonMask: 2 },
-//         },
-//         {
-//           name: 'Pan',
-//           mode: 'active',
-//           modeOptions: { mouseButtonMask: 4 },
-//         },
-//         // Scroll
-//         { name: 'StackScrollMouseWheel', mode: 'active' },
-//         // Touch
-//         { name: 'PanMultiTouch', mode: 'active' },
-//         { name: 'ZoomTouchPinch', mode: 'active' },
-//         { name: 'StackScrollMultiTouch', mode: 'active' },
-//       ]}
-//       imageIds={[
-//         'dicomweb://s3.amazonaws.com/lury/PTCTStudy/1.3.6.1.4.1.25403.52237031786.3872.20100510032220.11.dcm',
-//         'dicomweb://s3.amazonaws.com/lury/PTCTStudy/1.3.6.1.4.1.25403.52237031786.3872.20100510032220.12.dcm',
-//       ]}
-//     />
-//     );
-//   }
-// }
-
-// export default App;
-
-//   `}
-//             </SyntaxHighlighter>
-//           </div>
-//           <div className="col-xs-12 col-lg-6" style={style}></div>
-//         </div>
-//       </div>
-//   }
-// }
