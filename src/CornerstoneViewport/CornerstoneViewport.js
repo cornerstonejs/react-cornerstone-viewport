@@ -72,6 +72,7 @@ class CornerstoneViewport extends Component {
         handler: PropTypes.func.isRequired,
       })
     ),
+    style: PropTypes.object,
   };
 
   static loadIndicatorDelay = 45;
@@ -176,7 +177,7 @@ class CornerstoneViewport extends Component {
       : '100px';
 
     return (
-      <div className={className}>
+      <div className={className} style={this.props.style}>
         <div
           className="viewport-element"
           onContextMenu={e => e.preventDefault()}

@@ -1,10 +1,10 @@
 import React, { Component } from 'react';
 import { BrowserRouter as Router, Route, Link, Switch } from 'react-router-dom';
-// https://github.com/conorhastings/react-syntax-highlighter
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { atomDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
 // Routes
 import CornerstoneBasicExample from './CornerstoneBasicExample';
+import CornerstoneGridExample from './CornerstoneGridExample';
 
 /**
  *
@@ -49,7 +49,27 @@ function Index() {
       url: '/basic',
       text:
         'How to render an array of DICOM images and setup common built-in tools.',
+      // TODO: `activeTool`
     },
+    {
+      title: 'Grid Layout',
+      url: '/grid',
+      text: 'How to render multiple viewports and track the "active viewport".',
+      // TODO: `setViewportActive`
+    },
+    // TODO: Creeping Throttle Resize Issue (cornerstone-tools, if in container with no hard height limit?)
+    // Switching Stacks
+    // - Use different stack
+    // - Change index (warning)
+    // Custom Overlay
+    // - viewportOverlayComponent (+ Props)
+    // MOST COMPLEX: (mini viewer)
+    // - (mini viewer) Dynamic Grid + Global Tool Sync + Changing Tools
+    // Misc. Other Props: (just list them all, prop-types, basic comments for docs)
+    // - Cine
+    // - onElementEnabled (escape hatch)
+    // - eventListeners
+    // - isStackPrefetchEnabled
   ];
 
   const exampleComponents = examples.map(e => {
@@ -147,12 +167,14 @@ function Example(props) {
 
 function AppRouter() {
   const basic = () => Example({ children: <CornerstoneBasicExample /> });
+  const grid = () => Example({ children: <CornerstoneGridExample /> });
 
   return (
     <Router>
       <Switch>
         <Route exact path="/" component={Index} />
         <Route exact path="/basic/" render={basic} />
+        <Route exact path="/grid/" render={grid} />
         <Route exact component={Index} />
       </Switch>
     </Router>
