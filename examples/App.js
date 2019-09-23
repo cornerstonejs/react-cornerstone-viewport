@@ -83,7 +83,6 @@ function Index() {
       </div>
       <div className="row">
         <div className="col-xs-12 col-lg-6">
-          <h4>What is this?</h4>
           <p>
             This is a set of re-usable components for displaying data with{' '}
             <LinkOut
@@ -100,7 +99,7 @@ function Index() {
         </div>
 
         <div className="col-xs-12 col-lg-12">
-          <h4>Gettting Started</h4>
+          <h3>Configuring Cornerstone</h3>
           <p>
             All of these examples assume that the cornerstone family of
             libraries have been imported and configured prior to use. Here is
