@@ -5,6 +5,7 @@
 
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
+import classNames from 'classnames';
 import ImageScrollbar from '../ImageScrollbar/ImageScrollbar.js';
 import ViewportOverlay from '../ViewportOverlay/ViewportOverlay.js';
 import LoadingIndicator from '../LoadingIndicator/LoadingIndicator.js';
@@ -80,6 +81,7 @@ class CornerstoneViewport extends Component {
     loadIndicatorDelay: PropTypes.number,
     //
     style: PropTypes.object,
+    className: PropTypes.string,
   };
 
   constructor(props) {
@@ -298,6 +300,12 @@ class CornerstoneViewport extends Component {
       isFlippedHorizontally,
     } = this.state;
     const imageId = imageIds[imageIdIndex];
+
+    // Workaround for below TODO stub
+    if (!imageId) {
+      return false;
+    }
+    // TODO: This is throwing an error with an undefined `imageId`, and it shouldn't be
     const { rowCosines, columnCosines } =
       cornerstone.metaData.get('imagePlaneModule', imageId) || {};
 
@@ -541,16 +549,16 @@ class CornerstoneViewport extends Component {
   render() {
     const isLoading = this.state.isLoading;
     const displayLoadingIndicator = isLoading || this.state.error;
-
-    let className = 'CornerstoneViewport';
-
     const scrollbarMax = this.props.imageIds.length - 1;
     const scrollbarHeight = this.element
       ? `${this.element.clientHeight - 20}px`
       : '100px';
 
     return (
-      <div className={className} style={this.props.style}>
+      <div
+        className={classNames('viewport-container', this.props.className)}
+        style={this.props.style}
+      >
         <div
           className="viewport-element"
           onContextMenu={e => e.preventDefault()}
