@@ -114,107 +114,8 @@ class CornerstoneViewport extends Component {
     this.loadHandlerTimeout = undefined; // "Loading..." timer
   }
 
-  /**
-   *
-   *
-   * @returns
-   * @memberof CornerstoneViewport
-   */
-  getOverlay() {
-    const { viewportOverlayComponent: Component, imageIds } = this.props;
-    const { imageIdIndex, scale, windowWidth, windowCenter } = this.state;
-    const imageId = imageIds[imageIdIndex];
-
-    return (
-      imageId &&
-      windowWidth && (
-        <Component
-          imageIndex={imageIdIndex + 1}
-          stackSize={imageIds.length}
-          scale={scale}
-          windowWidth={windowWidth}
-          windowCenter={windowCenter}
-          imageId={imageId}
-        />
-      )
-    );
-  }
-
-  /**
-   *
-   *
-   * @returns
-   * @memberof CornerstoneViewport
-   */
-  getOrientationMarkersOverlay() {
-    const { imageIds } = this.props;
-    const {
-      imageIdIndex,
-      rotationDegrees,
-      isFlippedVertically,
-      isFlippedHorizontally,
-    } = this.state;
-    const imageId = imageIds[imageIdIndex];
-    const { rowCosines, columnCosines } =
-      cornerstone.metaData.get('imagePlaneModule', imageId) || {};
-
-    if (!rowCosines || !columnCosines || rotationDegrees === undefined) {
-      return false;
-    }
-
-    return (
-      <ViewportOrientationMarkers
-        rowCosines={rowCosines}
-        columnCosines={columnCosines}
-        rotationDegrees={rotationDegrees}
-        isFlippedVertically={isFlippedVertically}
-        isFlippedHorizontally={isFlippedHorizontally}
-      />
-    );
-  }
-
-  render() {
-    const isLoading = this.state.isLoading;
-    const displayLoadingIndicator = isLoading || this.state.error;
-
-    let className = 'CornerstoneViewport';
-
-    const scrollbarMax = this.props.imageIds.length - 1;
-    const scrollbarHeight = this.element
-      ? `${this.element.clientHeight - 20}px`
-      : '100px';
-
-    return (
-      <div className={className} style={this.props.style}>
-        <div
-          className="viewport-element"
-          onContextMenu={e => e.preventDefault()}
-          onMouseDown={e => e.preventDefault()}
-          ref={input => {
-            this.element = input;
-          }}
-        >
-          {displayLoadingIndicator && (
-            <LoadingIndicator error={this.state.error} />
-          )}
-          <canvas className="cornerstone-canvas" />
-          {this.getOverlay()}
-          {this.getOrientationMarkersOverlay()}
-        </div>
-        <ImageScrollbar
-          onInputCallback={this.imageSliderOnInputCallback}
-          max={scrollbarMax}
-          height={scrollbarHeight}
-          value={this.state.imageIdIndex}
-        />
-        {this.props.children}
-      </div>
-    );
-  }
-
   // ~~ LIFECYCLE
   async componentDidMount() {
-    console.warn('CornerstoneViewport: componentDidMount');
     const {
       tools,
       isStackPrefetchEnabled,
@@ -228,10 +129,12 @@ class CornerstoneViewport extends Component {
     this._bindInternalEventListeners();
     this._bindExternalEventListeners();
     this._handleOnElementEnabledEvent();
-    this._setupLoadHandlers();
 
     // Fire 'er up
     cornerstone.enable(this.element, cornerstoneOptions);
+
+    // Only after `uuid` is set for enabledElement
+    this._setupLoadHandlers();
 
     try {
       // Load first image in stack
@@ -350,6 +253,65 @@ class CornerstoneViewport extends Component {
     cornerstoneTools.clearToolState(this.element, 'stackPrefetch');
     cornerstoneTools.stopClip(this.element);
     cornerstone.disable(this.element);
+  }
+
+  /**
+   *
+   *
+   * @returns
+   * @memberof CornerstoneViewport
+   */
+  getOverlay() {
+    const { viewportOverlayComponent: Component, imageIds } = this.props;
+    const { imageIdIndex, scale, windowWidth, windowCenter } = this.state;
+    const imageId = imageIds[imageIdIndex];
+
+    return (
+      imageId &&
+      windowWidth && (
+        <Component
+          imageIndex={imageIdIndex + 1}
+          stackSize={imageIds.length}
+          scale={scale}
+          windowWidth={windowWidth}
+          windowCenter={windowCenter}
+          imageId={imageId}
+        />
+      )
+    );
+  }
+
+  /**
+   *
+   *
+   * @returns
+   * @memberof CornerstoneViewport
+   */
+  getOrientationMarkersOverlay() {
+    const { imageIds } = this.props;
+    const {
+      imageIdIndex,
+      rotationDegrees,
+      isFlippedVertically,
+      isFlippedHorizontally,
+    } = this.state;
+    const imageId = imageIds[imageIdIndex];
+    const { rowCosines, columnCosines } =
+      cornerstone.metaData.get('imagePlaneModule', imageId) || {};
+
+    if (!rowCosines || !columnCosines || rotationDegrees === undefined) {
+      return false;
+    }
+
+    return (
+      <ViewportOrientationMarkers
+        rowCosines={rowCosines}
+        columnCosines={columnCosines}
+        rotationDegrees={rotationDegrees}
+        isFlippedVertically={isFlippedVertically}
+        isFlippedHorizontally={isFlippedHorizontally}
+      />
+    );
   }
 
   /**
@@ -580,6 +542,45 @@ class CornerstoneViewport extends Component {
       this.props.setViewportActive(); // TODO: should take viewport index/ident?
     }
   };
+
+  render() {
+    const isLoading = this.state.isLoading;
+    const displayLoadingIndicator = isLoading || this.state.error;
+
+    let className = 'CornerstoneViewport';
+
+    const scrollbarMax = this.props.imageIds.length - 1;
+    const scrollbarHeight = this.element
+      ? `${this.element.clientHeight - 20}px`
+      : '100px';
+
+    return (
+      <div className={className} style={this.props.style}>
+        <div
+          className="viewport-element"
+          onContextMenu={e => e.preventDefault()}
+          onMouseDown={e => e.preventDefault()}
+          ref={input => {
+            this.element = input;
+          }}
+        >
+          {displayLoadingIndicator && (
+            <LoadingIndicator error={this.state.error} />
+          )}
+          <canvas className="cornerstone-canvas" />
+          {this.getOverlay()}
+          {this.getOrientationMarkersOverlay()}
+        </div>
+        <ImageScrollbar
+          onInputCallback={this.imageSliderOnInputCallback}
+          max={scrollbarMax}
+          height={scrollbarHeight}
+          value={this.state.imageIdIndex}
+        />
+        {this.props.children}
+      </div>
+    );
+  }
 }
 
 // TODO: Move configuration elsewhere

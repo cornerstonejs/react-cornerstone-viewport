@@ -27,6 +27,9 @@
       {
         "endOfLine": "auto"
       }
-    ]
+    ],
+    // React
+    // https://github.com/yannickcr/eslint-plugin-react#recommended
+    "react/sort-comp": "warn"
   }
 }
