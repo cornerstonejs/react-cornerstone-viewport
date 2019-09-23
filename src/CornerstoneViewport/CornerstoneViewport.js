@@ -15,6 +15,9 @@ import ViewportOrientationMarkers from '../ViewportOrientationMarkers/ViewportOr
 import cornerstone from 'cornerstone-core';
 import cornerstoneTools from 'cornerstone-tools';
 
+// Util
+import areStringArraysEqual from './../helpers/areStringArraysEqual.js';
+
 import './CornerstoneViewport.css';
 
 const scrollToIndex = cornerstoneTools.importInternal('util/scrollToIndex');
@@ -264,17 +267,15 @@ class CornerstoneViewport extends Component {
 
   // I pretty much only care here if the stack's updated, right?
   async componentDidUpdate(prevProps, prevState) {
-    console.warn('componentDidUpdate');
-
     // TODO: Expensive compare?
+    // It's actually most expensive when there are _no changes_
     // `componentDidUpdate` is currently called every render and `newImage`
     const { imageIds: stack, imageIdIndex: imageIndex } = this.props;
     const { imageIds: prevStack, imageIdIndex: prevImageIndex } = prevProps;
-    const isStackChanged = !_areStringArraysEqual(prevStack, stack);
-    const isImageIndexChanged = imageIndex !== prevImageIndex;
+    const hasStackChanged = !areStringArraysEqual(prevStack, stack);
+    const hasImageIndexChanged = imageIndex !== prevImageIndex;
 
-    if (isStackChanged) {
-      console.warn('~~~~~~~ stack changed');
+    if (hasStackChanged) {
       // update stack toolstate
       cornerstoneTools.clearToolState(this.element, 'stack');
       cornerstoneTools.addToolState(this.element, 'stack', {
@@ -284,8 +285,7 @@ class CornerstoneViewport extends Component {
 
       // reset viewport (fit to window)
       // load + display image
-    } else if (!isStackChanged && isImageIndexChanged) {
-      console.log('scrolling!');
+    } else if (!hasStackChanged && hasImageIndexChanged) {
       scrollToIndex(this.element, imageIndex);
     }
 
@@ -595,24 +595,5 @@ const TOOL_MODE_FUNCTIONS = {
   enabled: cornerstoneTools.setToolEnabledForElement,
   disabled: cornerstoneTools.setToolDisabledForElement,
 };
-
-/**
- * Compare equality of two string arrays
- *
- * @param {string[]} [arr1] - String array #1
- * @param {string[]} [arr2] - String array #2
- * @returns {boolean}
- */
-function _areStringArraysEqual(arr1, arr2) {
-  if (arr1 === arr2) return true; // Identity
-  if (!arr1 || !arr2) return false; // One is undef/null
-  if (arr1.length !== arr2.length) return false; // Diff length
-
-  for (let i = 0; i < arr1.length; i++) {
-    if (arr1[i] !== arr2[i]) return false;
-  }
-
-  return true;
-}
 
 export default CornerstoneViewport;
