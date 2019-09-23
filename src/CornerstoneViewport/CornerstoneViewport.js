@@ -1,7 +1,4 @@
 // - Fix `imageId` reliance for metadata?
-//
-// - start/end load Handlers may need to share w/ props, as there can only be one
-//
 // - After getting everything to work w/o updates, phase in changes that should be reactive from props.
 //
 // yarn link to extension -- special note of props specific to pulling out state?
@@ -25,14 +22,15 @@ const { loadHandlerManager } = cornerstoneTools;
 
 class CornerstoneViewport extends Component {
   static defaultProps = {
+    // Watch
     imageIdIndex: 0,
+    isPlaying: false,
+    cineFrameRate: 24,
+    viewportOverlayComponent: ViewportOverlay,
+    // Init
     cornerstoneOptions: {},
     isStackPrefetchEnabled: true,
-    cineToolData: {
-      isPlaying: false,
-      cineFrameRate: 24,
-    },
-    viewportOverlayComponent: ViewportOverlay,
+    loadIndicatorDelay: 45,
   };
 
   static propTypes = {
@@ -59,8 +57,10 @@ class CornerstoneViewport extends Component {
     children: PropTypes.node,
     cornerstoneOptions: PropTypes.object, // cornerstone.enable options
     isStackPrefetchEnabled: PropTypes.bool, // should prefetch?
+    // CINE
+    isPlaying: PropTypes.bool,
+    frameRate: PropTypes.number, // Between 1 and ?
     //
-    cineToolData: PropTypes.object.isRequired,
     setViewportActive: PropTypes.func, // Called when viewport should be set to active?
     viewportOverlayComponent: PropTypes.oneOfType([
       PropTypes.string,
@@ -77,10 +77,10 @@ class CornerstoneViewport extends Component {
     ),
     startLoadHandler: PropTypes.func,
     endLoadHandler: PropTypes.func,
+    loadIndicatorDelay: PropTypes.number,
+    //
     style: PropTypes.object,
   };
-
-  static loadIndicatorDelay = 45;
 
   constructor(props) {
     super(props);
@@ -159,7 +159,7 @@ class CornerstoneViewport extends Component {
       }
 
       _addAndConfigureInitialToolsForElement(tools, this.element);
-      this.trySetActiveTool();
+      _trySetActiveTool(this.element, this.props.activeTool);
       this.setState({ isLoading: false });
     } catch (error) {
       console.error(error);
@@ -171,11 +171,16 @@ class CornerstoneViewport extends Component {
   async componentDidUpdate(prevProps, prevState) {
     // TODO: Expensive compare?
     // It's actually most expensive when there are _no changes_
+    // We could _not_ update for stack changes, and instead use identity compare
+    // Where... If "StackUniqueIdentifier" has changed (displaySet/StudyId)
     // `componentDidUpdate` is currently called every render and `newImage`
+
+    // ~~ STACK/IMAGE
     const { imageIds: stack, imageIdIndex: imageIndex } = this.props;
     const { imageIds: prevStack, imageIdIndex: prevImageIndex } = prevProps;
     const hasStackChanged = !areStringArraysEqual(prevStack, stack);
     const hasImageIndexChanged = imageIndex !== prevImageIndex;
+    let updatedState = {};
 
     if (hasStackChanged) {
       // update stack toolstate
@@ -185,56 +190,53 @@ class CornerstoneViewport extends Component {
         currentImageIdIndex: imageIndex,
       });
 
-      // reset viewport (fit to window)
-      // load + display image
+      // New stack; reset counter
+      updatedState['numImagesLoaded'] = 0;
+
+      try {
+        // cornerstoneTools.stackPrefetch.disable(this.element);
+        // load + display image
+        const imageId = stack[imageIndex];
+        const image = await cornerstone.loadAndCacheImage(imageId);
+
+        cornerstone.displayImage(this.element, image);
+        cornerstone.reset(this.element);
+        // cornerstoneTools.stackPrefetch.enable(this.element);
+      } catch (err) {
+        // :wave:
+        // What if user kills component before `displayImage`?
+      }
     } else if (!hasStackChanged && hasImageIndexChanged) {
       scrollToIndex(this.element, imageIndex);
     }
 
-    //   try {
-    //     // TODO: Why is this here?
-    //     // cornerstoneTools.stackPrefetch.disable(this.element);
+    // ~~ ACTIVE TOOL
+    const { activeTool } = this.props;
+    const { activeTool: prevActiveTool } = prevProps;
+    const hasActiveToolChanges = activeTool !== prevActiveTool;
 
-    //     // TODO: Handle cases where the user ends the session before the image is displayed.
-    //     const image = await cornerstone.loadAndCacheImage(imageId);
+    if (hasActiveToolChanges) {
+      _trySetActiveTool(this.element, activeTool);
+    }
 
-    //     cornerstone.displayImage(this.element, image);
+    // ~~ CINE
+    const { frameRate, isPlaying } = this.props;
+    const { frameRate: prevFrameRate, isPlaying: prevIsPlaying } = prevProps;
+    const validFrameRate = Math.max(frameRate, 1);
+    const shouldStart = isPlaying !== prevIsPlaying && isPlaying;
+    const shouldPause = isPlaying !== prevIsPlaying && !isPlaying;
+    const hasFrameRateChanged = isPlaying && frameRate !== prevFrameRate;
 
-    //     // TODO: We just re-enable it?
-    //     // cornerstoneTools.stackPrefetch.enable(this.element);
-    //   } catch (err) {}
+    if (shouldStart || hasFrameRateChanged) {
+      cornerstoneTools.playClip(this.element, validFrameRate);
+    } else if (shouldPause) {
+      cornerstoneTools.stopClip(this.element);
+    }
 
-    //   if (this.props.activeTool !== prevProps.activeTool) {
-    //     this.setActiveTool(this.props.activeTool);
-    //   }
-
-    //   // TODO: int, 0 is paused?
-    //   if (
-    //     this.props.cineToolData.isPlaying !== prevProps.cineToolData.isPlaying
-    //   ) {
-    //     if (this.props.cineToolData.isPlaying) {
-    //       cornerstoneTools.playClip(this.element);
-    //     } else {
-    //       cornerstoneTools.stopClip(this.element);
-    //     }
-    //   }
-
-    //   if (
-    //     this.props.cineToolData.cineFrameRate !==
-    //     prevProps.cineToolData.cineFrameRate
-    //   ) {
-    //     if (this.props.cineToolData.isPlaying) {
-    //       cornerstoneTools.playClip(
-    //         this.element,
-    //         this.props.cineToolData.cineFrameRate
-    //       );
-    //     } else {
-    //       cornerstoneTools.stopClip(
-    //         this.element,
-    //         this.props.cineToolData.cineFrameRate
-    //       );
-    //     }
-    //   }
+    // ~~ STATE: Update aggregated state changes
+    if (Object.keys(updatedState).length > 0) {
+      this.setState(updatedState);
+    }
   }
 
   /**
@@ -317,8 +319,9 @@ class CornerstoneViewport extends Component {
   /**
    *
    *
-   * @param {boolean} [clear=false]
+   * @param {boolean} [clear=false] - True to clear event listeners
    * @memberof CornerstoneViewport
+   * @returns {undefined}
    */
   _bindInternalEventListeners(clear = false) {
     const addOrRemoveEventListener = clear
@@ -329,6 +332,13 @@ class CornerstoneViewport extends Component {
     this.element[addOrRemoveEventListener](
       cornerstone.EVENTS.NEW_IMAGE,
       this.onNewImage
+    );
+
+    // Update our "Images Loaded" count.
+    // Better than nothing?
+    this.element[addOrRemoveEventListener](
+      cornerstone.EVENTS.IMAGE_LOADED,
+      this.onImageLoaded
     );
 
     // Updates state's viewport
@@ -362,7 +372,8 @@ class CornerstoneViewport extends Component {
 
   /**
    *
-   * @param {boolean} [clear=false]
+   * @param {boolean} [clear=false] - True to clear event listeners
+   * @returns {undefined}
    */
   _bindExternalEventListeners(clear = false) {
     if (!this.eventListeners) {
@@ -395,9 +406,12 @@ class CornerstoneViewport extends Component {
   }
 
   /**
-   *
+   * Convenience handler to pass the "Element Enabled" event back up to the
+   * parent via a callback. Can be used as an escape hatch for more advanced
+   * cornerstone fucntionality.
    *
    * @memberof CornerstoneViewport
+   * @returns {undefined}
    */
   _handleOnElementEnabledEvent = () => {
     const handler = evt => {
@@ -444,12 +458,12 @@ class CornerstoneViewport extends Component {
 
     // We use this to "flip" `isLoading` to true, if our startLoading request
     // takes longer than our "loadIndicatorDelay"
-    const startLoadHandler = () => {
+    const startLoadHandler = element => {
       clearTimeout(this.loadHandlerTimeout);
 
       // Call user defined loadHandler
       if (this.startLoadHandler) {
-        this.startLoadHandler();
+        this.startLoadHandler(element);
       }
 
       // We're taking too long. Indicate that we're "Loading".
@@ -457,15 +471,15 @@ class CornerstoneViewport extends Component {
         this.setState({
           isLoading: true,
         });
-      }, CornerstoneViewport.loadIndicatorDelay);
+      }, this.props.loadIndicatorDelay);
     };
 
-    const endLoadHandler = () => {
+    const endLoadHandler = (element, image) => {
       clearTimeout(this.loadHandlerTimeout);
 
       // Call user defined loadHandler
       if (this.endLoadHandler) {
-        this.endLoadHandler();
+        this.endLoadHandler(element, image);
       }
 
       if (this.state.isLoading) {
@@ -478,26 +492,6 @@ class CornerstoneViewport extends Component {
     loadHandlerManager.setStartLoadHandler(startLoadHandler, this.element);
     loadHandlerManager.setEndLoadHandler(endLoadHandler, this.element);
   }
-
-  /**
-   *
-   * @param {string} [activeTool]
-   *
-   * @memberof CornerstoneViewport
-   */
-  trySetActiveTool = () => {
-    if (!this.props.activeTool) {
-      return;
-    }
-
-    cornerstoneTools.setToolActiveForElement(
-      this.element,
-      this.props.activeTool,
-      {
-        mouseButtonMask: 1,
-      }
-    );
-  };
 
   // TODO: May need to throttle?
   onImageRendered = event => {
@@ -524,12 +518,13 @@ class CornerstoneViewport extends Component {
     });
   };
 
-  // onImageLoaded = () => {
-  //   // This is not necessarily true :thinking:
-  //   this.setState({
-  //     numImagesLoaded: this.state.numImagesLoaded + 1,
-  //   });
-  // };
+  onImageLoaded = () => {
+    // TODO: This is not necessarily true :thinking:
+    // We need better cache reporting a layer up
+    this.setState({
+      numImagesLoaded: this.state.numImagesLoaded + 1,
+    });
+  };
 
   imageSliderOnInputCallback = value => {
     this.setViewportActive();
@@ -581,6 +576,36 @@ class CornerstoneViewport extends Component {
       </div>
     );
   }
+}
+
+/**
+ *
+ *
+ * @param {HTMLElement} element
+ * @param {string} activeToolName
+ * @returns
+ */
+function _trySetActiveTool(element, activeToolName) {
+  if (!element || !activeToolName) {
+    return;
+  }
+
+  const validTools = cornerstoneTools.store.state.tools.filter(
+    tool => tool.element === element
+  );
+  const validToolNames = validTools.map(tool => tool.name);
+
+  if (!validToolNames.includes(activeToolName)) {
+    console.warn(
+      `Trying to set a tool active that is not "added". Available tools include: ${validToolNames.join(
+        ', '
+      )}`
+    );
+  }
+
+  cornerstoneTools.setToolActiveForElement(element, activeToolName, {
+    mouseButtonMask: 1,
+  });
 }
 
 // TODO: Move configuration elsewhere
