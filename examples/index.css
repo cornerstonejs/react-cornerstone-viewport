@@ -12,3 +12,15 @@ body {
   padding: 0;
   font-family: sans-serif;
 }
+
+/**
+ * Example Viewport Styles
+ */
+
+.viewport-container {
+  border: 2px solid black;
+}
+
+.viewport-container.active {
+  border: 2px solid dodgerblue;
+}
