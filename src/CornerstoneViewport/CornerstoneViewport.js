@@ -75,6 +75,8 @@ class CornerstoneViewport extends Component {
         handler: PropTypes.func.isRequired,
       })
     ),
+    startLoadHandler: PropTypes.func,
+    endLoadHandler: PropTypes.func,
     style: PropTypes.object,
   };
 
@@ -107,6 +109,9 @@ class CornerstoneViewport extends Component {
     // TODO: Deep Copy? How does that work w/ handlers?
     // Save a copy. Props could change before `willUnmount`
     this.eventListeners = this.props.eventListeners;
+    this.startLoadHandler = this.props.startLoadHandler;
+    this.endLoadHandler = this.props.endLoadHandler;
+    this.loadHandlerTimeout = undefined; // "Loading..." timer
   }
 
   /**
@@ -223,16 +228,10 @@ class CornerstoneViewport extends Component {
     this._bindInternalEventListeners();
     this._bindExternalEventListeners();
     this._handleOnElementEnabledEvent();
+    this._setupLoadHandlers();
 
     // Fire 'er up
     cornerstone.enable(this.element, cornerstoneOptions);
-
-    // TODO: careful.. There can only be one
-    loadHandlerManager.setStartLoadHandler(
-      this.startLoadingHandler,
-      this.element
-    );
-    loadHandlerManager.setEndLoadHandler(this.doneLoadingHandler, this.element);
 
     try {
       // Load first image in stack
@@ -335,11 +334,19 @@ class CornerstoneViewport extends Component {
     //   }
   }
 
+  /**
+   * Tear down any listeners/handlers, and stop any asynchronous/queued operations
+   * that could fire after Unmount and cause errors.
+   *
+   * @memberof CornerstoneViewport
+   * @returns {undefined}
+   */
   componentWillUnmount() {
     const clear = true;
 
     this._bindInternalEventListeners(clear);
     this._bindExternalEventListeners(clear);
+    this._setupLoadHandlers(clear);
     cornerstoneTools.clearToolState(this.element, 'stackPrefetch');
     cornerstoneTools.stopClip(this.element);
     cornerstone.disable(this.element);
@@ -454,6 +461,63 @@ class CornerstoneViewport extends Component {
   };
 
   /**
+   * There is a "GLOBAL/DEFAULT" load handler for start/end/error,
+   * and one that can be defined per element. We use start/end handlers in this
+   * component to show the "Loading..." indicator if a loading request is taking
+   * longer than expected.
+   *
+   * Because we're using the "per element" handler, we need to call the user's
+   * handler within our own (if it's set). Load Handlers are not well documented,
+   * but you can find [their source here]{@link https://github.com/cornerstonejs/cornerstoneTools/blob/master/src/stateManagement/loadHandlerManager.js}
+   *
+   * @param {boolean} [clear=false] - true to remove previously set load handlers
+   * @memberof CornerstoneViewport
+   * @returns {undefined}
+   */
+  _setupLoadHandlers(clear = false) {
+    if (clear) {
+      loadHandlerManager.removeHandlers(this.element);
+      return;
+    }
+
+    // We use this to "flip" `isLoading` to true, if our startLoading request
+    // takes longer than our "loadIndicatorDelay"
+    const startLoadHandler = () => {
+      clearTimeout(this.loadHandlerTimeout);
+
+      // Call user defined loadHandler
+      if (this.startLoadHandler) {
+        this.startLoadHandler();
+      }
+
+      // We're taking too long. Indicate that we're "Loading".
+      this.loadHandlerTimeout = setTimeout(() => {
+        this.setState({
+          isLoading: true,
+        });
+      }, CornerstoneViewport.loadIndicatorDelay);
+    };
+
+    const endLoadHandler = () => {
+      clearTimeout(this.loadHandlerTimeout);
+
+      // Call user defined loadHandler
+      if (this.endLoadHandler) {
+        this.endLoadHandler();
+      }
+
+      if (this.state.isLoading) {
+        this.setState({
+          isLoading: false,
+        });
+      }
+    };
+
+    loadHandlerManager.setStartLoadHandler(startLoadHandler, this.element);
+    loadHandlerManager.setEndLoadHandler(endLoadHandler, this.element);
+  }
+
+  /**
    *
    * @param {string} [activeTool]
    *
@@ -504,22 +568,6 @@ class CornerstoneViewport extends Component {
   //     numImagesLoaded: this.state.numImagesLoaded + 1,
   //   });
   // };
-
-  startLoadingHandler = () => {
-    clearTimeout(this.loadHandlerTimeout);
-    this.loadHandlerTimeout = setTimeout(() => {
-      this.setState({
-        isLoading: true,
-      });
-    }, CornerstoneViewport.loadIndicatorDelay);
-  };
-
-  doneLoadingHandler = () => {
-    clearTimeout(this.loadHandlerTimeout);
-    this.setState({
-      isLoading: false,
-    });
-  };
 
   imageSliderOnInputCallback = value => {
     this.setViewportActive();
