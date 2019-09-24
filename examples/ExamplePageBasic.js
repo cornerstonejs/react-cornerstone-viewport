@@ -37,8 +37,6 @@ class ExamplePageBasic extends Component {
     ],
   };
 
-  componentDidMount() {}
-
   render() {
     return (
       <div>

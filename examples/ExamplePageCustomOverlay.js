@@ -44,16 +44,14 @@ class CustomOverlay extends Component {
 }
 
 class ExamplePageCustomOverlay extends Component {
-  state = {
-    viewportOverlayComponent: CustomOverlay,
-  };
-
-  componentDidMount() {}
-
   render() {
     return (
       <div>
         <h2>Custom Overlay</h2>
+        <p>
+          The most important thing to note here are the props received by the
+          Custom Overlay component.
+        </p>
         <div style={{ display: 'flex', flexWrap: 'wrap' }}>
           <CornerstoneViewport
             tools={[

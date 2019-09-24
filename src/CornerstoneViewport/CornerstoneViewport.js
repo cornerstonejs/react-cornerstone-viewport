@@ -423,9 +423,8 @@ class CornerstoneViewport extends Component {
       const elementThatWasEnabled = evt.detail.element;
       if (elementThatWasEnabled === this.element) {
         // Pass Event
-        if (this.props.onElementEnabled) {
-          this.props.onElementEnabled(evt);
-        }
+        this.props.onElementEnabled(evt);
+
         // Stop Listening
         cornerstone.events.removeEventListener(
           cornerstone.EVENTS.ELEMENT_ENABLED,
@@ -435,10 +434,12 @@ class CornerstoneViewport extends Component {
     };
 
     // Start Listening
-    cornerstone.events.addEventListener(
-      cornerstone.EVENTS.ELEMENT_ENABLED,
-      handler
-    );
+    if (this.props.onElementEnabled) {
+      cornerstone.events.addEventListener(
+        cornerstone.EVENTS.ELEMENT_ENABLED,
+        handler
+      );
+    }
   };
 
   /**

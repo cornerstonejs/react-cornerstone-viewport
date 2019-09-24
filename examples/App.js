@@ -6,6 +6,7 @@ import { atomDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import ExamplePageBasic from './ExamplePageBasic.js';
 import ExamplePageGrid from './ExamplePageGrid.js';
 import ExamplePageCustomOverlay from './ExamplePageCustomOverlay.js';
+import ExamplePageEscapeHatch from './ExamplePageEscapeHatch.js';
 
 /**
  *
@@ -73,8 +74,6 @@ function Index() {
       text:
         'How to access the created enabledElement so you can leverage cornerstone and cornerstone-tools APIs directly.',
     },
-    // Custom Overlay
-    // - viewportOverlayComponent (+ Props)
     // MOST COMPLEX: (mini viewer)
     // - (mini viewer) Dynamic Grid + Global Tool Sync + Changing Tools
     // Misc. Other Props: (just list them all, prop-types, basic comments for docs)
@@ -181,6 +180,7 @@ function AppRouter() {
   const grid = () => Example({ children: <ExamplePageGrid /> });
   const customOverlay = () =>
     Example({ children: <ExamplePageCustomOverlay /> });
+  const escapeHatch = () => Example({ children: <ExamplePageEscapeHatch /> });
 
   return (
     <Router>
@@ -189,6 +189,7 @@ function AppRouter() {
         <Route exact path="/basic/" render={basic} />
         <Route exact path="/grid/" render={grid} />
         <Route exact path="/custom-overlay" render={customOverlay} />
+        <Route exact path="/escape-hatch" render={escapeHatch} />
         <Route exact component={Index} />
       </Switch>
     </Router>
