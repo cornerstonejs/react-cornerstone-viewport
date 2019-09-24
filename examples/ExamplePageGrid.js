@@ -20,7 +20,7 @@ const stack2 = [
   'dicomweb://s3.amazonaws.com/lury/PTCTStudy/1.3.6.1.4.1.25403.52237031786.3872.20100510032220.11.dcm',
 ];
 
-class CornerstoneGridExample extends Component {
+class ExamplePageGrid extends Component {
   state = {
     activeViewportIndex: 0,
     viewports: [0, 1, 2, 3],
@@ -90,6 +90,11 @@ class CornerstoneGridExample extends Component {
 
         {/* FORM */}
         <h2>Misc. Props</h2>
+        <p>
+          Note, when we change the active stack, we also need to update the
+          imageIdIndex prop to a value that falls within the new stack's range
+          of possible indexes.
+        </p>
         <div style={{ marginTop: '35px' }}>
           <form className="row">
             {/* FIRST COLUMN */}
@@ -273,4 +278,4 @@ class CornerstoneGridExample extends Component {
   }
 }
 
-export default CornerstoneGridExample;
+export default ExamplePageGrid;

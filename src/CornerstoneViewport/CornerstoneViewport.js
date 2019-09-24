@@ -1,8 +1,5 @@
 // - Fix `imageId` reliance for metadata?
 // - After getting everything to work w/o updates, phase in changes that should be reactive from props.
-//
-// yarn link to extension -- special note of props specific to pulling out state?
-
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import classNames from 'classnames';
