@@ -114,7 +114,7 @@ function Index() {
           <p>
             All of these examples assume that the cornerstone family of
             libraries have been imported and configured prior to use. Here is
-            breif example of what that may look like in ES6:
+            brief example of what that may look like in ES6:
           </p>
           <SyntaxHighlighter
             language="jsx"

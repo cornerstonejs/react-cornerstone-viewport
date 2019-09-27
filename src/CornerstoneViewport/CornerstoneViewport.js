@@ -7,6 +7,7 @@ import ImageScrollbar from '../ImageScrollbar/ImageScrollbar.js';
 import ViewportOverlay from '../ViewportOverlay/ViewportOverlay.js';
 import LoadingIndicator from '../LoadingIndicator/LoadingIndicator.js';
 import ViewportOrientationMarkers from '../ViewportOrientationMarkers/ViewportOrientationMarkers.js';
+import windowResizeHandler from './windowResizeHandler.js';
 import cornerstone from 'cornerstone-core';
 import cornerstoneTools from 'cornerstone-tools';
 
@@ -132,6 +133,7 @@ class CornerstoneViewport extends Component {
 
     // Fire 'er up
     cornerstone.enable(this.element, cornerstoneOptions);
+    windowResizeHandler.enable(this.element);
 
     // Only after `uuid` is set for enabledElement
     this._setupLoadHandlers();
@@ -254,6 +256,7 @@ class CornerstoneViewport extends Component {
     this._setupLoadHandlers(clear);
     cornerstoneTools.clearToolState(this.element, 'stackPrefetch');
     cornerstoneTools.stopClip(this.element);
+    windowResizeHandler.disable(this.element);
     cornerstone.disable(this.element);
   }
 
