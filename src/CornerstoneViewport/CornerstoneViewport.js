@@ -10,6 +10,7 @@ import ViewportOrientationMarkers from '../ViewportOrientationMarkers/ViewportOr
 import windowResizeHandler from './windowResizeHandler.js';
 import cornerstone from 'cornerstone-core';
 import cornerstoneTools from 'cornerstone-tools';
+import ReactResizeDetector from 'react-resize-detector/lib/index.js';
 
 // Util
 import areStringArraysEqual from './../helpers/areStringArraysEqual.js';
@@ -557,17 +558,25 @@ class CornerstoneViewport extends Component {
       : '100px';
 
     return (
-      <div
-        className={classNames('viewport-container', this.props.className)}
-        style={this.props.style}
-      >
+      <>
+        <ReactResizeDetector
+          handleWidth
+          handleHeight
+          skipOnMount={true}
+          refreshMode={'throttle'}
+          refreshRate={65}
+          onResize={() => {
+            cornerstone.resize(this.element);
+          }}
+        />
         <div
-          className="viewport-element"
+          className={classNames('viewport-element', this.props.className)}
           onContextMenu={e => e.preventDefault()}
           onMouseDown={e => e.preventDefault()}
           ref={input => {
             this.element = input;
           }}
+          style={this.props.style}
         >
           {displayLoadingIndicator && (
             <LoadingIndicator error={this.state.error} />
@@ -583,7 +592,7 @@ class CornerstoneViewport extends Component {
           value={this.state.imageIdIndex}
         />
         {this.props.children}
-      </div>
+      </>
     );
   }
 }
