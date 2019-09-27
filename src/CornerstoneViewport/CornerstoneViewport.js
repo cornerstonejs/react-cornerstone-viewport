@@ -29,6 +29,7 @@ class CornerstoneViewport extends Component {
     cornerstoneOptions: {},
     isStackPrefetchEnabled: true,
     loadIndicatorDelay: 45,
+    tools: [],
   };
 
   static propTypes = {
