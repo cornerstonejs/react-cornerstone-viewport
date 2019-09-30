@@ -563,7 +563,10 @@ class CornerstoneViewport extends Component {
       : '100px';
 
     return (
-      <>
+      <div
+        style={this.props.style}
+        className={classNames('viewport-wrapper', this.props.className)}
+      >
         <ReactResizeDetector
           handleWidth
           handleHeight
@@ -574,32 +577,32 @@ class CornerstoneViewport extends Component {
             cornerstone.resize(this.element);
           }}
         />
-        <div style={{ position: 'relative' }}>
-          <div
-            className={classNames('viewport-element', this.props.className)}
-            onContextMenu={e => e.preventDefault()}
-            onMouseDown={e => e.preventDefault()}
-            ref={input => {
-              this.element = input;
-            }}
-            style={this.props.style}
-          >
-            {displayLoadingIndicator && (
-              <LoadingIndicator error={this.state.error} />
-            )}
-            <canvas className="cornerstone-canvas" />
-            {this.getOverlay()}
-            {this.getOrientationMarkersOverlay()}
-          </div>
-          <ImageScrollbar
-            onInputCallback={this.imageSliderOnInputCallback}
-            max={scrollbarMax}
-            height={scrollbarHeight}
-            value={this.state.imageIdIndex}
-          />
-          {this.props.children}
+        <div
+          className="viewport-element"
+          onContextMenu={e => e.preventDefault()}
+          onMouseDown={e => e.preventDefault()}
+          ref={input => {
+            this.element = input;
+          }}
+        >
+          {displayLoadingIndicator && (
+            <LoadingIndicator error={this.state.error} />
+          )}
+          {/* This classname is important in that it tells `cornerstone` to not
+           * create a new canvas element when we "enable" the `viewport-element`
+           */}
+          <canvas className="cornerstone-canvas" />
+          {this.getOverlay()}
+          {this.getOrientationMarkersOverlay()}
         </div>
-      </>
+        <ImageScrollbar
+          onInputCallback={this.imageSliderOnInputCallback}
+          max={scrollbarMax}
+          height={scrollbarHeight}
+          value={this.state.imageIdIndex}
+        />
+        {this.props.children}
+      </div>
     );
   }
 }
