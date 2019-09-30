@@ -1,3 +1,7 @@
+/**
+ * DEMO STYLES
+ * - Not exported as part of library
+ */
 html {
   box-sizing: border-box;
 }
@@ -13,14 +17,10 @@ body {
   font-family: sans-serif;
 }
 
-/**
- * Example Viewport Styles
- */
-
-.viewport-container {
+.viewport-wrapper {
   border: 2px solid black;
 }
 
-.viewport-container.active {
+.viewport-wrapper.active {
   border: 2px solid dodgerblue;
 }
