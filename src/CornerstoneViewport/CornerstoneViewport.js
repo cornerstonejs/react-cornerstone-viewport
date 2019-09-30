@@ -31,6 +31,7 @@ class CornerstoneViewport extends Component {
     cornerstoneOptions: {},
     isStackPrefetchEnabled: true,
     loadIndicatorDelay: 45,
+    resizeThrottleMs: 200,
     tools: [],
   };
 
@@ -79,6 +80,7 @@ class CornerstoneViewport extends Component {
     startLoadHandler: PropTypes.func,
     endLoadHandler: PropTypes.func,
     loadIndicatorDelay: PropTypes.number,
+    resizeThrottleMs: PropTypes.number, // 0 to disable
     //
     style: PropTypes.object,
     className: PropTypes.string,
@@ -123,6 +125,7 @@ class CornerstoneViewport extends Component {
       isStackPrefetchEnabled,
       cornerstoneOptions,
       imageIds,
+      resizeThrottleMs,
     } = this.props;
     const { imageIdIndex } = this.state;
     const imageId = imageIds[imageIdIndex];
@@ -134,7 +137,9 @@ class CornerstoneViewport extends Component {
 
     // Fire 'er up
     cornerstone.enable(this.element, cornerstoneOptions);
-    windowResizeHandler.enable(this.element);
+    if (resizeThrottleMs) {
+      windowResizeHandler.enable(this.element, resizeThrottleMs);
+    }
 
     // Only after `uuid` is set for enabledElement
     this._setupLoadHandlers();
@@ -257,7 +262,7 @@ class CornerstoneViewport extends Component {
     this._setupLoadHandlers(clear);
     cornerstoneTools.clearToolState(this.element, 'stackPrefetch');
     cornerstoneTools.stopClip(this.element);
-    windowResizeHandler.disable(this.element);
+    if (this.props.resizeThrottleMs) windowResizeHandler.disable(this.element);
     cornerstone.disable(this.element);
   }
 
@@ -564,7 +569,7 @@ class CornerstoneViewport extends Component {
           handleHeight
           skipOnMount={true}
           refreshMode={'throttle'}
-          refreshRate={65}
+          refreshRate={this.props.resizeThrottleMs}
           onResize={() => {
             cornerstone.resize(this.element);
           }}

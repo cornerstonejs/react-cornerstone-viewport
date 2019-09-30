@@ -2,8 +2,8 @@ import cornerstone from 'cornerstone-core';
 
 const registeredListeners = [];
 
-const enable = function(element) {
-  const handler = resizeThrottler.bind(null, element);
+const enable = function(element, throttleMs) {
+  const handler = resizeThrottler.bind(null, element, throttleMs);
 
   window.addEventListener('resize', handler, false);
   registeredListeners.push({
@@ -26,7 +26,7 @@ const disable = function(element) {
   }
 };
 
-function resizeThrottler(element) {
+function resizeThrottler(element, throttleMs) {
   const registeredListener = registeredListeners.find(
     listener => listener.element === element
   );
@@ -38,7 +38,7 @@ function resizeThrottler(element) {
       forceEnabledElementResize(element);
 
       // The actualResizeHandler will execute at a rate of 15fps
-    }, 66);
+    }, throttleMs);
   }
 }
 
