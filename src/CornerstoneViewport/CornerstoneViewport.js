@@ -260,9 +260,14 @@ class CornerstoneViewport extends Component {
     this._bindInternalEventListeners(clear);
     this._bindExternalEventListeners(clear);
     this._setupLoadHandlers(clear);
+    if (this.props.isStackPrefetchEnabled) {
+      _enableStackPrefetching(this.element, clear);
+    }
     cornerstoneTools.clearToolState(this.element, 'stackPrefetch');
     cornerstoneTools.stopClip(this.element);
-    if (this.props.resizeThrottleMs) windowResizeHandler.disable(this.element);
+    if (this.props.resizeThrottleMs) {
+      windowResizeHandler.disable(this.element);
+    }
     cornerstone.disable(this.element);
   }
 
@@ -640,14 +645,18 @@ function _trySetActiveTool(element, activeToolName) {
 // TODO: Move configuration elsewhere
 // This is app wide, right?
 // Why would we configure this per element?
-function _enableStackPrefetching(element) {
+function _enableStackPrefetching(element, clear = false) {
   cornerstoneTools.stackPrefetch.setConfiguration({
     maxImagesToPrefetch: Infinity,
     preserveExistingPool: false,
     maxSimultaneousRequests: 6,
   });
 
-  cornerstoneTools.stackPrefetch.enable(element);
+  if (clear) {
+    cornerstoneTools.stackPrefetch.disable(element);
+  } else {
+    cornerstoneTools.stackPrefetch.enable(element);
+  }
 }
 
 /**
