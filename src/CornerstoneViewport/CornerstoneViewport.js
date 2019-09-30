@@ -574,29 +574,31 @@ class CornerstoneViewport extends Component {
             cornerstone.resize(this.element);
           }}
         />
-        <div
-          className={classNames('viewport-element', this.props.className)}
-          onContextMenu={e => e.preventDefault()}
-          onMouseDown={e => e.preventDefault()}
-          ref={input => {
-            this.element = input;
-          }}
-          style={this.props.style}
-        >
-          {displayLoadingIndicator && (
-            <LoadingIndicator error={this.state.error} />
-          )}
-          <canvas className="cornerstone-canvas" />
-          {this.getOverlay()}
-          {this.getOrientationMarkersOverlay()}
+        <div style={{ position: 'relative' }}>
+          <div
+            className={classNames('viewport-element', this.props.className)}
+            onContextMenu={e => e.preventDefault()}
+            onMouseDown={e => e.preventDefault()}
+            ref={input => {
+              this.element = input;
+            }}
+            style={this.props.style}
+          >
+            {displayLoadingIndicator && (
+              <LoadingIndicator error={this.state.error} />
+            )}
+            <canvas className="cornerstone-canvas" />
+            {this.getOverlay()}
+            {this.getOrientationMarkersOverlay()}
+          </div>
+          <ImageScrollbar
+            onInputCallback={this.imageSliderOnInputCallback}
+            max={scrollbarMax}
+            height={scrollbarHeight}
+            value={this.state.imageIdIndex}
+          />
+          {this.props.children}
         </div>
-        <ImageScrollbar
-          onInputCallback={this.imageSliderOnInputCallback}
-          max={scrollbarMax}
-          height={scrollbarHeight}
-          value={this.state.imageIdIndex}
-        />
-        {this.props.children}
       </>
     );
   }
