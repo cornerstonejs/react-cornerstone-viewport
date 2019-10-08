@@ -27,6 +27,7 @@ class CornerstoneViewport extends Component {
     isPlaying: false,
     cineFrameRate: 24,
     viewportOverlayComponent: ViewportOverlay,
+    imageIds: ['no-id://'],
     // Init
     cornerstoneOptions: {},
     isStackPrefetchEnabled: true,
