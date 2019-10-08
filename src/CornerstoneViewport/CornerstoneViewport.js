@@ -145,11 +145,6 @@ class CornerstoneViewport extends Component {
     this._setupLoadHandlers();
 
     try {
-      // Load first image in stack
-      const image = await cornerstone.loadAndCacheImage(imageId);
-
-      // Display
-      cornerstone.displayImage(this.element, image);
       // Setup "Stack State"
       cornerstoneTools.clearToolState(this.element, 'stack');
       cornerstoneTools.addStackStateManager(this.element, [
@@ -161,6 +156,12 @@ class CornerstoneViewport extends Component {
         imageIds: [...imageIds],
         currentImageIdIndex: imageIdIndex,
       });
+
+      // Load first image in stack
+      const image = await cornerstone.loadAndCacheImage(imageId);
+
+      // Display
+      cornerstone.displayImage(this.element, image);
 
       if (isStackPrefetchEnabled) {
         _enableStackPrefetching(this.element);
