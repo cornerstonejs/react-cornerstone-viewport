@@ -1,71 +1,68 @@
 import { PureComponent } from 'react';
 import React from 'react';
 import PropTypes from 'prop-types';
-import cornerstone from 'cornerstone-core';
 import cornerstoneTools from 'cornerstone-tools';
-import './ViewportOrientationMarkers.styl';
+import './ViewportOrientationMarkers.css';
 
 /**
+ *
  * Computes the orientation labels on a Cornerstone-enabled Viewport element
  * when the viewport settings change (e.g. when a horizontal flip or a rotation occurs)
  *
- * @param imageId The Cornerstone ImageId
- * @param viewport The current viewport
+ * @param {*} rowCosines
+ * @param {*} columnCosines
+ * @param {*} rotationDegrees
+ * @param {*} isFlippedVertically
+ * @param {*} isFlippedHorizontally
+ * @returns
  */
-export function getOrientationMarkers(imageId, viewport) {
-  const imagePlane = cornerstone.metaData.get('imagePlaneModule', imageId);
-  if (!imagePlane || !imagePlane.rowCosines || !imagePlane.columnCosines) {
-    return;
-  }
-
-  const rowString = cornerstoneTools.orientation.getOrientationString(
-    imagePlane.rowCosines
-  );
-  const columnString = cornerstoneTools.orientation.getOrientationString(
-    imagePlane.columnCosines
-  );
-  const oppositeRowString = cornerstoneTools.orientation.invertOrientationString(
-    rowString
-  );
-  const oppositeColumnString = cornerstoneTools.orientation.invertOrientationString(
-    columnString
-  );
+function getOrientationMarkers(
+  rowCosines,
+  columnCosines,
+  rotationDegrees,
+  isFlippedVertically,
+  isFlippedHorizontally
+) {
+  const {
+    getOrientationString,
+    invertOrientationString,
+  } = cornerstoneTools.orientation;
+  const rowString = getOrientationString(rowCosines);
+  const columnString = getOrientationString(columnCosines);
+  const oppositeRowString = invertOrientationString(rowString);
+  const oppositeColumnString = invertOrientationString(columnString);
 
   const markers = {
     top: oppositeColumnString,
-    left: oppositeRowString
+    left: oppositeRowString,
   };
 
   // If any vertical or horizontal flips are applied, change the orientation strings ahead of
   // the rotation applications
-  if (viewport.vflip) {
-    markers.top = cornerstoneTools.orientation.invertOrientationString(
-      markers.top
-    );
+  if (isFlippedVertically) {
+    markers.top = invertOrientationString(markers.top);
   }
 
-  if (viewport.hflip) {
-    markers.left = cornerstoneTools.orientation.invertOrientationString(
-      markers.left
-    );
+  if (isFlippedHorizontally) {
+    markers.left = invertOrientationString(markers.left);
   }
 
   // Swap the labels accordingly if the viewport has been rotated
   // This could be done in a more complex way for intermediate rotation values (e.g. 45 degrees)
-  if (viewport.rotation === 90 || viewport.rotation === -270) {
+  if (rotationDegrees === 90 || rotationDegrees === -270) {
     return {
       top: markers.left,
-      left: cornerstoneTools.orientation.invertOrientationString(markers.top)
+      left: invertOrientationString(markers.top),
     };
-  } else if (viewport.rotation === -90 || viewport.rotation === 270) {
+  } else if (rotationDegrees === -90 || rotationDegrees === 270) {
     return {
-      top: cornerstoneTools.orientation.invertOrientationString(markers.left),
-      left: markers.top
+      top: invertOrientationString(markers.left),
+      left: markers.top,
     };
-  } else if (viewport.rotation === 180 || viewport.rotation === -180) {
+  } else if (rotationDegrees === 180 || rotationDegrees === -180) {
     return {
-      top: cornerstoneTools.orientation.invertOrientationString(markers.top),
-      left: cornerstoneTools.orientation.invertOrientationString(markers.left)
+      top: invertOrientationString(markers.top),
+      left: invertOrientationString(markers.left),
     };
   }
 
@@ -74,21 +71,33 @@ export function getOrientationMarkers(imageId, viewport) {
 
 class ViewportOrientationMarkers extends PureComponent {
   static propTypes = {
-    imageId: PropTypes.string.isRequired,
-    viewport: PropTypes.object.isRequired
+    rowCosines: PropTypes.array.isRequired,
+    columnCosines: PropTypes.array.isRequired,
+    rotationDegrees: PropTypes.number.isRequired,
+    isFlippedVertically: PropTypes.bool.isRequired,
+    isFlippedHorizontally: PropTypes.bool.isRequired,
   };
 
   render() {
-    const { imageId, viewport } = this.props;
-    if (!imageId) {
-      return null;
-    }
+    const {
+      rowCosines,
+      columnCosines,
+      rotationDegrees,
+      isFlippedVertically,
+      isFlippedHorizontally,
+    } = this.props;
 
-    const markers = getOrientationMarkers(imageId, viewport);
-
-    if (!markers) {
+    if (!rowCosines || !columnCosines) {
       return '';
     }
+
+    const markers = getOrientationMarkers(
+      rowCosines,
+      columnCosines,
+      rotationDegrees,
+      isFlippedVertically,
+      isFlippedHorizontally
+    );
 
     return (
       <div className="ViewportOrientationMarkers noselect">

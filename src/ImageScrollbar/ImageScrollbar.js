@@ -1,13 +1,13 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import './ImageScrollbar.styl';
+import './ImageScrollbar.css';
 
 class ImageScrollbar extends PureComponent {
   static propTypes = {
     value: PropTypes.number.isRequired,
     max: PropTypes.number.isRequired,
     height: PropTypes.string.isRequired,
-    onInputCallback: PropTypes.func.isRequired
+    onInputCallback: PropTypes.func.isRequired,
   };
 
   render() {
@@ -16,7 +16,7 @@ class ImageScrollbar extends PureComponent {
     }
 
     this.style = {
-      width: `${this.props.height}`
+      width: `${this.props.height}`,
     };
 
     return (
@@ -50,7 +50,7 @@ class ImageScrollbar extends PureComponent {
     // Store the KeyCodes in an object for readability
     const keys = {
       DOWN: 40,
-      UP: 38
+      UP: 38,
     };
 
     // TODO: Enable scroll down / scroll up without depending on ohif-core

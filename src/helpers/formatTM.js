@@ -1,6 +1,6 @@
-import moment from 'moment';
+import { parse, format } from 'date-fns';
 
-export default function formatTM(time, format = 'HH:mm:ss') {
+export default function formatTM(time, strFormat = 'HH:mm:ss') {
   if (!time) {
     return;
   }
@@ -11,8 +11,17 @@ export default function formatTM(time, format = 'HH:mm:ss') {
   //      s ss    0..59   Seconds
   //      S SS SSS    0..999  Fractional seconds
   //
-  // See MomentJS: http://momentjs.com/docs/#/parsing/string-format/
-  const dateTime = moment(time, 'HHmmss.SSS');
+  // Goal: '24:12:12'
+  try {
+    const inputFormat = 'HHmmss.SSS';
+    const strTime = time.toString().substring(0, inputFormat.length);
+    const parsedDateTime = parse(strTime, 'HHmmss.SSS', new Date(0));
+    const formattedDateTime = format(parsedDateTime, strFormat);
 
-  return dateTime.format(format);
+    return formattedDateTime;
+  } catch (err) {
+    // swallow?
+  }
+
+  return;
 }

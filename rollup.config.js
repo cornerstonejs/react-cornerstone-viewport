@@ -11,13 +11,12 @@ import pkg from './package.json';
 const globals = {
   react: 'React',
   'react-dom': 'ReactDOM',
-  'react-resize-detector': 'ReactResizeDetector',
   'cornerstone-core': 'cornerstone',
   'cornerstone-math': 'cornerstoneMath',
   'cornerstone-tools': 'cornerstoneTools',
   'cornerstone-wado-image-loader': 'cornerstoneWADOImageLoader',
   'dicom-parser': 'dicomParser',
-  hammerjs: 'Hammer'
+  hammerjs: 'Hammer',
 };
 
 export default {
@@ -27,35 +26,35 @@ export default {
       file: pkg.main,
       format: 'cjs',
       sourcemap: true,
-      globals
+      globals,
     },
     {
       file: pkg.browser,
       format: 'umd',
       name: 'react-cornerstone-viewport',
       sourcemap: true,
-      globals
+      globals,
     },
     {
       file: pkg.module,
       format: 'es',
       sourcemap: true,
-      globals
-    }
+      globals,
+    },
   ],
   plugins: [
     external(),
     postcss({
-      modules: false
+      modules: false,
     }),
     url(),
     svgr(),
     babel({
       exclude: 'node_modules/**',
       plugins: ['@babel/transform-runtime'],
-      runtimeHelpers: true
+      runtimeHelpers: true,
     }),
     resolve(),
-    commonjs()
-  ]
+    commonjs(),
+  ],
 };

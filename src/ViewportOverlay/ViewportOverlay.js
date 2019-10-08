@@ -4,14 +4,14 @@ import PropTypes from 'prop-types';
 import cornerstone from 'cornerstone-core';
 import dicomParser from 'dicom-parser';
 import { helpers } from '../helpers/index.js';
-import './ViewportOverlay.styl';
+import './ViewportOverlay.css';
 
 const {
   formatPN,
   formatDA,
   formatNumberPrecision,
   formatTM,
-  isValidNumber
+  isValidNumber,
 } = helpers;
 
 function getCompression(imageId) {
@@ -20,7 +20,7 @@ function getCompression(imageId) {
   const {
     lossyImageCompression,
     lossyImageCompressionRatio,
-    lossyImageCompressionMethod
+    lossyImageCompressionMethod,
   } = generalImageModule;
 
   if (lossyImageCompression === '01' && lossyImageCompressionRatio !== '') {
@@ -37,18 +37,22 @@ function getCompression(imageId) {
 
 class ViewportOverlay extends PureComponent {
   static propTypes = {
-    viewport: PropTypes.object.isRequired,
+    scale: PropTypes.number.isRequired,
+    windowWidth: PropTypes.number.isRequired,
+    windowCenter: PropTypes.number.isRequired,
     imageId: PropTypes.string.isRequired,
-    stack: PropTypes.object.isRequired
+    imageIndex: PropTypes.number.isRequired,
+    stackSize: PropTypes.number.isRequired,
   };
 
   render() {
-    const imageId = this.props.imageId;
+    const { imageId, scale, windowWidth, windowCenter } = this.props;
+
     if (!imageId) {
       return null;
     }
 
-    const zoom = this.props.viewport.scale * 100;
+    const zoomPercentage = formatNumberPrecision(scale * 100, 0);
     const seriesMetadata =
       cornerstone.metaData.get('generalSeriesModule', imageId) || {};
     const imagePlaneModule =
@@ -73,14 +77,10 @@ class ViewportOverlay extends PureComponent {
 
     const frameRate = formatNumberPrecision(1000 / frameTime, 1);
     const compression = getCompression(imageId);
-    const windowWidth = this.props.viewport.voi.windowWidth || 0;
-    const windowCenter = this.props.viewport.voi.windowCenter || 0;
     const wwwc = `W: ${windowWidth.toFixed(0)} L: ${windowCenter.toFixed(0)}`;
-
-    const { imageIds } = this.props.stack;
-    const imageIndex = imageIds.indexOf(this.props.imageId) + 1;
-    const numImages = imageIds.length;
     const imageDimensions = `${columns} x ${rows}`;
+
+    const { imageIndex, stackSize } = this.props;
 
     const normal = (
       <React.Fragment>
@@ -95,15 +95,15 @@ class ViewportOverlay extends PureComponent {
           </div>
         </div>
         <div className="bottom-right overlay-element">
-          <div>Zoom: {formatNumberPrecision(zoom, 0)}%</div>
+          <div>Zoom: {zoomPercentage}%</div>
           <div>{wwwc}</div>
           <div className="compressionIndicator">{compression}</div>
         </div>
         <div className="bottom-left overlay-element">
           <div>{seriesNumber >= 0 ? `Ser: ${seriesNumber}` : ''}</div>
           <div>
-            {numImages > 1
-              ? `Img: ${instanceNumber} ${imageIndex}/${numImages}`
+            {stackSize > 1
+              ? `Img: ${instanceNumber} ${imageIndex}/${stackSize}`
               : ''}
           </div>
           <div>
@@ -119,64 +119,6 @@ class ViewportOverlay extends PureComponent {
             </div>
             <div>{seriesDescription}</div>
           </div>
-        </div>
-      </React.Fragment>
-    );
-
-    const rightOnly = (
-      <React.Fragment>
-        <div className="top-right overlay-element">
-          <div>{formatPN(patientName)}</div>
-          <div>{patientId}</div>
-          <div>{studyDescription}</div>
-          <div>
-            {formatDA(studyDate)} {formatTM(studyTime)}
-          </div>
-        </div>
-        <div className="bottom-right overlay-element">
-          <div>{seriesNumber >= 0 ? `Ser: ${seriesNumber}` : ''}</div>
-          <div>
-            {numImages > 1
-              ? `Img: ${instanceNumber} ${imageIndex}/${numImages}`
-              : ''}
-          </div>
-          <div>
-            {frameRate >= 0 ? `${formatNumberPrecision(frameRate, 2)} FPS` : ''}
-          </div>
-          <div>{imageDimensions}</div>
-          <div>{seriesDescription}</div>
-          <div>Zoom: {formatNumberPrecision(zoom, 0)}%</div>
-          <div className="compressionIndicator">{compression}</div>
-          <div>{wwwc}</div>
-        </div>
-      </React.Fragment>
-    );
-
-    const leftOnly = (
-      <React.Fragment>
-        <div className="top-left overlay-element">
-          <div>{formatPN(patientName)}</div>
-          <div>{patientId}</div>
-          <div>{studyDescription}</div>
-          <div>
-            {formatDA(studyDate)} {formatTM(studyTime)}
-          </div>
-        </div>
-        <div className="bottom-left overlay-element">
-          <div>{seriesNumber >= 0 ? `Ser: ${seriesNumber}` : ''}</div>
-          <div>
-            {numImages > 1
-              ? `Img: ${instanceNumber} ${imageIndex}/${numImages}`
-              : ''}
-          </div>
-          <div>
-            {frameRate >= 0 ? `${formatNumberPrecision(frameRate, 2)} FPS` : ''}
-          </div>
-          <div>{imageDimensions}</div>
-          <div>{seriesDescription}</div>
-          <div>Zoom: {formatNumberPrecision(zoom, 0)}%</div>
-          <div className="compressionIndicator">{compression}</div>
-          <div>{wwwc}</div>
         </div>
       </React.Fragment>
     );

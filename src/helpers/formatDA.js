@@ -1,11 +1,19 @@
-import moment from 'moment';
+import { parse, format } from 'date-fns';
 
-export default function formatDA(date, strFormat = 'MMM D, YYYY') {
+export default function formatDA(date, strFormat = 'MMM d, yyyy') {
   if (!date) {
     return;
   }
 
-  const dateAsMoment = moment(date, 'YYYYMMDD');
+  // Goal: 'Apr 5, 1999'
+  try {
+    const parsedDateTime = parse(date, 'yyyyMMdd', new Date());
+    const formattedDateTime = format(parsedDateTime, strFormat);
 
-  return dateAsMoment.format(strFormat);
+    return formattedDateTime;
+  } catch (err) {
+    // swallow?
+  }
+
+  return;
 }
