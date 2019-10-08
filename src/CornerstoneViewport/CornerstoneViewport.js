@@ -1,5 +1,3 @@
-// - Fix `imageId` reliance for metadata?
-// - After getting everything to work w/o updates, phase in changes that should be reactive from props.
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import classNames from 'classnames';
@@ -30,7 +28,7 @@ class CornerstoneViewport extends Component {
     imageIds: ['no-id://'],
     // Init
     cornerstoneOptions: {},
-    isStackPrefetchEnabled: true,
+    isStackPrefetchEnabled: false,
     loadIndicatorDelay: 45,
     resizeThrottleMs: 200,
     tools: [],
@@ -186,8 +184,16 @@ class CornerstoneViewport extends Component {
     // `componentDidUpdate` is currently called every render and `newImage`
 
     // ~~ STACK/IMAGE
-    const { imageIds: stack, imageIdIndex: imageIndex } = this.props;
-    const { imageIds: prevStack, imageIdIndex: prevImageIndex } = prevProps;
+    const {
+      imageIds: stack,
+      imageIdIndex: imageIndex,
+      isStackPrefetchEnabled,
+    } = this.props;
+    const {
+      imageIds: prevStack,
+      imageIdIndex: prevImageIndex,
+      isStackPrefetchEnabled: prevIsStackPrefetchEnabled,
+    } = prevProps;
     const hasStackChanged = !areStringArraysEqual(prevStack, stack);
     const hasImageIndexChanged = imageIndex !== prevImageIndex;
     let updatedState = {};
@@ -205,20 +211,30 @@ class CornerstoneViewport extends Component {
       updatedState['error'] = null; // Reset error on new stack
 
       try {
-        // cornerstoneTools.stackPrefetch.disable(this.element);
         // load + display image
         const imageId = stack[imageIndex];
         const image = await cornerstone.loadAndCacheImage(imageId);
 
         cornerstone.displayImage(this.element, image);
         cornerstone.reset(this.element);
-        // cornerstoneTools.stackPrefetch.enable(this.element);
       } catch (err) {
         // :wave:
         // What if user kills component before `displayImage`?
       }
     } else if (!hasStackChanged && hasImageIndexChanged) {
       scrollToIndex(this.element, imageIndex);
+    }
+
+    const shouldStopStartStackPrefetch =
+      (isStackPrefetchEnabled && hasStackChanged) ||
+      (!prevIsStackPrefetchEnabled && isStackPrefetchEnabled === true);
+
+    // Need to stop/start to pickup stack changes in prefetcher
+    if (shouldStopStartStackPrefetch) {
+      const clear = true;
+
+      _enableStackPrefetching(this.element, clear);
+      _enableStackPrefetching(this.element);
     }
 
     // ~~ ACTIVE TOOL
