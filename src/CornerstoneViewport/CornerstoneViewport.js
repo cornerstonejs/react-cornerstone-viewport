@@ -172,7 +172,7 @@ class CornerstoneViewport extends Component {
       this.setState({ isLoading: false });
     } catch (error) {
       console.error(error);
-      this.setState({ error });
+      this.setState({ error, isLoading: false });
     }
   }
 
@@ -201,6 +201,7 @@ class CornerstoneViewport extends Component {
 
       // New stack; reset counter
       updatedState['numImagesLoaded'] = 0;
+      updatedState['error'] = null; // Reset error on new stack
 
       try {
         // cornerstoneTools.stackPrefetch.disable(this.element);
