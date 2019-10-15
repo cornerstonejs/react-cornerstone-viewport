@@ -83,8 +83,7 @@ class CornerstoneViewport extends Component {
     //
     style: PropTypes.object,
     className: PropTypes.string,
-    //isOverlayVisible conditionally rendering.    Initial commit    Initial commit
-    isOverlayVisible: PropTypes.bool.isRequired,
+    isOverlayVisible: PropTypes.bool,
   };
 
   constructor(props) {
@@ -105,7 +104,7 @@ class CornerstoneViewport extends Component {
       scale: undefined,
       windowWidth: undefined,
       windowCenter: undefined,
-      isOverlayVisible: props.isOverlayVisible == false ? false : true,
+      isOverlayVisible: true,
       // Orientation Markers
       rotationDegrees: undefined,
       isFlippedVertically: undefined,
@@ -250,7 +249,7 @@ class CornerstoneViewport extends Component {
     }
 
     // ~~ CINE
-    const { frameRate, isPlaying } = this.props;
+    const { frameRate, isPlaying, isOverlayVisible } = this.props;
     const {
       frameRate: prevFrameRate,
       isPlaying: prevIsPlaying,
@@ -272,8 +271,6 @@ class CornerstoneViewport extends Component {
       this.setState(updatedState);
     }
 
-    // -- Overlay toggle
-    const { isOverlayVisible } = this.props;
     if (isOverlayVisible !== prevIsOverlayVisible)
       this.setState({ isOverlayVisible });
   }
