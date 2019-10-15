@@ -46,6 +46,7 @@ class ExamplePageBasic extends Component {
             tools={this.state.tools}
             imageIds={this.state.imageIds}
             style={{ minWidth: '100%', height: '512px', flex: '1' }}
+            isOverlayVisible={false}
           />
         </div>
 
