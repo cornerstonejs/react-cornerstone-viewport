@@ -83,6 +83,7 @@ class CornerstoneViewport extends Component {
     //
     style: PropTypes.object,
     className: PropTypes.string,
+    isOverlayVisible: PropTypes.bool,
   };
 
   constructor(props) {
@@ -103,6 +104,7 @@ class CornerstoneViewport extends Component {
       scale: undefined,
       windowWidth: undefined,
       windowCenter: undefined,
+      isOverlayVisible: true,
       // Orientation Markers
       rotationDegrees: undefined,
       isFlippedVertically: undefined,
@@ -247,8 +249,12 @@ class CornerstoneViewport extends Component {
     }
 
     // ~~ CINE
-    const { frameRate, isPlaying } = this.props;
-    const { frameRate: prevFrameRate, isPlaying: prevIsPlaying } = prevProps;
+    const { frameRate, isPlaying, isOverlayVisible } = this.props;
+    const {
+      frameRate: prevFrameRate,
+      isPlaying: prevIsPlaying,
+      isOverlayVisible: prevIsOverlayVisible,
+    } = prevProps;
     const validFrameRate = Math.max(frameRate, 1);
     const shouldStart = isPlaying !== prevIsPlaying && isPlaying;
     const shouldPause = isPlaying !== prevIsPlaying && !isPlaying;
@@ -264,6 +270,9 @@ class CornerstoneViewport extends Component {
     if (Object.keys(updatedState).length > 0) {
       this.setState(updatedState);
     }
+
+    if (isOverlayVisible !== prevIsOverlayVisible)
+      this.setState({ isOverlayVisible });
   }
 
   /**
@@ -298,12 +307,18 @@ class CornerstoneViewport extends Component {
    */
   getOverlay() {
     const { viewportOverlayComponent: Component, imageIds } = this.props;
-    const { imageIdIndex, scale, windowWidth, windowCenter } = this.state;
+    const {
+      imageIdIndex,
+      scale,
+      windowWidth,
+      windowCenter,
+      isOverlayVisible,
+    } = this.state;
     const imageId = imageIds[imageIdIndex];
-
     return (
       imageId &&
-      windowWidth && (
+      windowWidth &&
+      isOverlayVisible && (
         <Component
           imageIndex={imageIdIndex + 1}
           stackSize={imageIds.length}
