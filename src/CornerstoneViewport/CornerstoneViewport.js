@@ -19,21 +19,6 @@ const scrollToIndex = cornerstoneTools.importInternal('util/scrollToIndex');
 const { loadHandlerManager } = cornerstoneTools;
 
 class CornerstoneViewport extends Component {
-  static defaultProps = {
-    // Watch
-    imageIdIndex: 0,
-    isPlaying: false,
-    cineFrameRate: 24,
-    viewportOverlayComponent: ViewportOverlay,
-    imageIds: ['no-id://'],
-    // Init
-    cornerstoneOptions: {},
-    isStackPrefetchEnabled: false,
-    loadIndicatorDelay: 45,
-    resizeThrottleMs: 200,
-    tools: [],
-  };
-
   static propTypes = {
     imageIds: PropTypes.arrayOf(PropTypes.string).isRequired,
     imageIdIndex: PropTypes.number,
@@ -79,11 +64,30 @@ class CornerstoneViewport extends Component {
     startLoadHandler: PropTypes.func,
     endLoadHandler: PropTypes.func,
     loadIndicatorDelay: PropTypes.number,
+    loadingIndicatorComponent: PropTypes.oneOfType([
+      PropTypes.string,
+      PropTypes.func,
+    ]),
     resizeThrottleMs: PropTypes.number, // 0 to disable
     //
     style: PropTypes.object,
     className: PropTypes.string,
     isOverlayVisible: PropTypes.bool,
+  };
+
+  static defaultProps = {
+    // Watch
+    imageIdIndex: 0,
+    isPlaying: false,
+    cineFrameRate: 24,
+    viewportOverlayComponent: ViewportOverlay,
+    imageIds: ['no-id://'],
+    // Init
+    cornerstoneOptions: {},
+    isStackPrefetchEnabled: false,
+    loadIndicatorDelay: 45,
+    resizeThrottleMs: 200,
+    tools: [],
   };
 
   constructor(props) {
@@ -97,6 +101,7 @@ class CornerstoneViewport extends Component {
       // We can probs grab this once and hold on to? (updated on newImage)
       imageId,
       imageIdIndex, // Maybe
+      imageProgress: 0,
       isLoading: true,
       numImagesLoaded: 0,
       error: null,
@@ -172,7 +177,6 @@ class CornerstoneViewport extends Component {
       _trySetActiveTool(this.element, this.props.activeTool);
       this.setState({ isLoading: false });
     } catch (error) {
-      console.error(error);
       this.setState({ error, isLoading: false });
     }
   }
@@ -300,6 +304,17 @@ class CornerstoneViewport extends Component {
   }
 
   /**
+   * @returns Component
+   * @memberof CornerstoneViewport
+   */
+  getLoadingIndicator() {
+    const { loadingIndicatorComponent: Component } = this.props;
+    const { error, imageProgress } = this.state;
+
+    return <Component error={error} percentComplete={imageProgress} />;
+  }
+
+  /**
    *
    *
    * @returns
@@ -388,9 +403,14 @@ class CornerstoneViewport extends Component {
       this.onNewImage
     );
 
-    // Update our "Images Loaded" count.
-    // Better than nothing?
-    this.element[addOrRemoveEventListener](
+    // Update image load progress
+    cornerstone.events[addOrRemoveEventListener](
+      'cornerstoneimageloadprogress',
+      this.onImageProgress
+    );
+
+    // Update number of images loaded
+    cornerstone.events[addOrRemoveEventListener](
       cornerstone.EVENTS.IMAGE_LOADED,
       this.onImageLoaded
     );
@@ -581,6 +601,12 @@ class CornerstoneViewport extends Component {
     });
   };
 
+  onImageProgress = e => {
+    this.setState({
+      imageProgress: e.detail.percentComplete,
+    });
+  };
+
   imageSliderOnInputCallback = value => {
     this.setViewportActive();
 
@@ -624,9 +650,7 @@ class CornerstoneViewport extends Component {
             this.element = input;
           }}
         >
-          {displayLoadingIndicator && (
-            <LoadingIndicator error={this.state.error} />
-          )}
+          {displayLoadingIndicator && this.getLoadingIndicator()}
           {/* This classname is important in that it tells `cornerstone` to not
            * create a new canvas element when we "enable" the `viewport-element`
            */}

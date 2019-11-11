@@ -1,21 +1,26 @@
 .imageViewerLoadingIndicator {
   color: #91b9cd;
 }
+
 .faded {
   opacity: 0.5;
 }
+
 .imageViewerErrorLoadingIndicator {
   color: #e29e4a;
 }
+
 .imageViewerErrorLoadingIndicator p,
 .imageViewerErrorLoadingIndicator h4 {
   padding: 4px 0;
   text-align: center;
   word-wrap: break-word;
 }
+
 .imageViewerErrorLoadingIndicator p {
   font-size: 11pt;
 }
+
 .loadingIndicator {
   background-color: rgba(0, 0, 0, 0.75);
   font-size: 18px;
@@ -27,8 +32,8 @@
   width: 100%;
   z-index: 1;
 }
+
 .loadingIndicator .indicatorContents {
-  font-size: 30px;
   font-weight: 300;
   position: absolute;
   text-align: center;

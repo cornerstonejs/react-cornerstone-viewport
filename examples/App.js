@@ -63,10 +63,10 @@ function Index() {
       text: 'How to render multiple viewports and track the "active viewport".',
     },
     {
-      title: 'Custom Overlay Component',
+      title: 'Custom Overlay and Loader Component',
       url: '/custom-overlay',
       text:
-        'Provide an alternative React Component to use in place of the built in overlay-text component.',
+        'Provide an alternative React Component to use in place of the built in overlay-text and loading indicator components.',
     },
     {
       title: 'Escape Hatch',
