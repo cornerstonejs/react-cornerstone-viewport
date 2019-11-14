@@ -65,7 +65,7 @@ class CornerstoneViewport extends Component {
     endLoadHandler: PropTypes.func,
     loadIndicatorDelay: PropTypes.number,
     loadingIndicatorComponent: PropTypes.oneOfType([
-      PropTypes.string,
+      PropTypes.element,
       PropTypes.func,
     ]),
     resizeThrottleMs: PropTypes.number, // 0 to disable
@@ -86,6 +86,7 @@ class CornerstoneViewport extends Component {
     cornerstoneOptions: {},
     isStackPrefetchEnabled: false,
     loadIndicatorDelay: 45,
+    loadingIndicatorComponent: LoadingIndicator,
     resizeThrottleMs: 200,
     tools: [],
   };
