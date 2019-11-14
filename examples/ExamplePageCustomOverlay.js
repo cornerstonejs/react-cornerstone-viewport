@@ -43,6 +43,26 @@ class CustomOverlay extends Component {
   }
 }
 
+class CustomLoader extends Component {
+  render() {
+    return (
+      <div
+        className="lds-ripple"
+        style={{
+          position: 'absolute',
+          top: '47%',
+          left: '47%',
+          width: '100%',
+          height: '100%',
+          color: 'white',
+        }}
+      >
+        <div />
+        <div />
+      </div>
+    );
+  }
+}
 class ExamplePageCustomOverlay extends Component {
   render() {
     return (
@@ -66,6 +86,7 @@ class ExamplePageCustomOverlay extends Component {
               'dicomweb://s3.amazonaws.com/lury/PTCTStudy/1.3.6.1.4.1.25403.52237031786.3872.20100510032220.12.dcm',
             ]}
             viewportOverlayComponent={CustomOverlay}
+            loadingIndicatorComponent={CustomLoader}
             style={{ minWidth: '100%', height: '512px', flex: '1' }}
           />
         </div>
@@ -114,6 +135,28 @@ class ExamplePageCustomOverlay extends Component {
   }
 }
 
+class CustomLoader extends Component {
+  render() {
+    return (
+      <div
+        className="lds-ripple"
+        style={{
+          position: 'absolute',
+          top: '47%',
+          left: '47%',
+          width: '100%',
+          height: '100%',
+          color: 'white',
+        }}
+      >
+        <div></div>
+        <div></div>
+      </div>
+    );
+  }
+}
+
+
 {/* RENDER */}
 <CornerstoneViewport
 tools={[
@@ -128,6 +171,7 @@ imageIds={[
   'dicomweb://s3.amazonaws.com/lury/PTCTStudy/1.3.6.1.4.1.25403.52237031786.3872.20100510032220.12.dcm',
 ]}
 viewportOverlayComponent={CustomOverlay}
+loadingIndicatorComponent={CustomLoader}
 style={{ minWidth: '100%', height: '512px', flex: '1' }}
 />`}
           </SyntaxHighlighter>
