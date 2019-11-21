@@ -278,6 +278,10 @@ class CornerstoneViewport extends Component {
 
     if (isOverlayVisible !== prevIsOverlayVisible)
       this.setState({ isOverlayVisible });
+
+    // Rebind event listeners when props change to handle functional component method
+    this._bindExternalEventListeners(true);
+    this._bindExternalEventListeners();
   }
 
   /**
