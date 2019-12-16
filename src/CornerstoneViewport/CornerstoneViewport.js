@@ -48,6 +48,7 @@ class CornerstoneViewport extends Component {
     frameRate: PropTypes.number, // Between 1 and ?
     //
     setViewportActive: PropTypes.func, // Called when viewport should be set to active?
+    onNewImage: PropTypes.func,
     viewportOverlayComponent: PropTypes.oneOfType([
       PropTypes.string,
       PropTypes.func,
@@ -588,14 +589,24 @@ class CornerstoneViewport extends Component {
   };
 
   onNewImage = event => {
-    const newImageId = event.detail.image.imageId;
-    const newImageIdIndex = this.props.imageIds.indexOf(newImageId);
+    const { imageId } = event.detail.image;
+    const { sopInstanceUid } = cornerstone.metaData.get(
+      'generalImageModule',
+      imageId
+    );
+    const currentImageIdIndex = this.props.imageIds.indexOf(imageId);
 
     // TODO: Should we grab and set some imageId specific metadata here?
     // Could prevent cornerstone dependencies in child components.
     this.setState({
-      imageIdIndex: newImageIdIndex,
+      imageIdIndex: currentImageIdIndex,
     });
+
+    if (this.props.onNewImage) {
+      this.props.onNewImage({
+        sopInstanceUid,
+      });
+    }
   };
 
   onImageLoaded = () => {
