@@ -32,6 +32,7 @@ function wadoRsMetaDataProvider(type, imageId) {
 
   if (type === 'generalImageModule') {
     return {
+      sopInstanceUid: getValue(metaData['00080018']),
       instanceNumber: getNumberValue(metaData['00200013']),
       lossyImageCompression: getValue(metaData['00282110']),
       lossyImageCompressionRatio: getValue(metaData['00282112']),
