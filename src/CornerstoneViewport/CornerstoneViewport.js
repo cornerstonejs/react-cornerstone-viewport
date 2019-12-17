@@ -133,6 +133,8 @@ class CornerstoneViewport extends Component {
       cornerstoneOptions,
       imageIds,
       resizeThrottleMs,
+      isPlaying,
+      frameRate,
     } = this.props;
     const { imageIdIndex } = this.state;
     const imageId = imageIds[imageIdIndex];
@@ -172,6 +174,11 @@ class CornerstoneViewport extends Component {
 
       if (isStackPrefetchEnabled) {
         _enableStackPrefetching(this.element);
+      }
+
+      if (isPlaying) {
+        const validFrameRate = Math.max(frameRate, 1);
+        cornerstoneTools.playClip(this.element, validFrameRate);
       }
 
       _addAndConfigureInitialToolsForElement(tools, this.element);
