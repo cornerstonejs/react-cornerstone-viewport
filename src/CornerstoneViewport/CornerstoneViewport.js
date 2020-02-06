@@ -86,6 +86,7 @@ class CornerstoneViewport extends Component {
     // Init
     cornerstoneOptions: {},
     isStackPrefetchEnabled: false,
+    isOverlayVisible: true,
     loadIndicatorDelay: 45,
     loadingIndicatorComponent: LoadingIndicator,
     resizeThrottleMs: 200,
@@ -97,6 +98,7 @@ class CornerstoneViewport extends Component {
 
     const imageIdIndex = props.imageIdIndex;
     const imageId = props.imageIds[imageIdIndex];
+    const isOverlayVisible = props.isOverlayVisible;
 
     this.state = {
       // Used for metadata lookup (imagePlane, orientation markers)
@@ -111,7 +113,7 @@ class CornerstoneViewport extends Component {
       scale: undefined,
       windowWidth: undefined,
       windowCenter: undefined,
-      isOverlayVisible: true,
+      isOverlayVisible,
       // Orientation Markers
       rotationDegrees: undefined,
       isFlippedVertically: undefined,
