@@ -142,13 +142,18 @@ class CornerstoneViewport extends Component {
     const { imageIdIndex } = this.state;
     const imageId = imageIds[imageIdIndex];
 
-    // EVENTS
-    this._bindInternalEventListeners();
-    this._bindExternalEventListeners();
+    // ~~ EVENTS: CORNERSTONE
     this._handleOnElementEnabledEvent();
+    this._bindInternalCornerstoneEventListeners();
+    this._bindExternalEventListeners("cornerstone");
 
-    // Fire 'er up
+    // Enable
     cornerstone.enable(this.element, cornerstoneOptions);
+
+    // ~~ EVENTS: ELEMENT
+    this._bindInternalElementEventListeners();
+    this._bindExternalEventListeners("element");
+
     if (resizeThrottleMs) {
       windowResizeHandler.enable(this.element, resizeThrottleMs);
     }
@@ -192,14 +197,7 @@ class CornerstoneViewport extends Component {
     }
   }
 
-  // I pretty much only care here if the stack's updated, right?
   async componentDidUpdate(prevProps, prevState) {
-    // TODO: Expensive compare?
-    // It's actually most expensive when there are _no changes_
-    // We could _not_ update for stack changes, and instead use identity compare
-    // Where... If "StackUniqueIdentifier" has changed (displaySet/StudyId)
-    // `componentDidUpdate` is currently called every render and `newImage`
-
     // ~~ STACK/IMAGE
     const {
       imageIds: stack,
@@ -281,17 +279,20 @@ class CornerstoneViewport extends Component {
       cornerstoneTools.stopClip(this.element);
     }
 
+    // ~~ OVERLAY
+    if (isOverlayVisible !== prevIsOverlayVisible)
+      updatedState.isOverlayVisible = isOverlayVisible
+
     // ~~ STATE: Update aggregated state changes
     if (Object.keys(updatedState).length > 0) {
       this.setState(updatedState);
     }
 
-    if (isOverlayVisible !== prevIsOverlayVisible)
-      this.setState({ isOverlayVisible });
-
-    // Rebind event listeners when props change to handle functional component method
-    this._bindExternalEventListeners(true);
-    this._bindExternalEventListeners();
+    /* Rebind event listeners when props change to handle functional component method
+    this._bindExternalEventListeners("cornerstone", true);
+    this._bindExternalEventListeners("element", true);
+    this._bindExternalEventListeners("cornerstone");
+    this._bindExternalEventListeners("element"); */
   }
 
   /**
@@ -304,8 +305,11 @@ class CornerstoneViewport extends Component {
   componentWillUnmount() {
     const clear = true;
 
-    this._bindInternalEventListeners(clear);
-    this._bindExternalEventListeners(clear);
+    this._bindInternalCornerstoneEventListeners(clear);
+    this._bindInternalElementEventListeners(clear);
+    this._bindExternalEventListeners("cornerstone", clear);
+    this._bindExternalEventListeners("element", clear);
+
     this._setupLoadHandlers(clear);
     if (this.props.isStackPrefetchEnabled) {
       _enableStackPrefetching(this.element, clear);
@@ -407,16 +411,10 @@ class CornerstoneViewport extends Component {
    * @memberof CornerstoneViewport
    * @returns {undefined}
    */
-  _bindInternalEventListeners(clear = false) {
+  _bindInternalCornerstoneEventListeners(clear = false) {
     const addOrRemoveEventListener = clear
       ? 'removeEventListener'
       : 'addEventListener';
-
-    // Updates state's imageId, and imageIndex
-    this.element[addOrRemoveEventListener](
-      cornerstone.EVENTS.NEW_IMAGE,
-      this.onNewImage
-    );
 
     // Update image load progress
     cornerstone.events[addOrRemoveEventListener](
@@ -428,6 +426,25 @@ class CornerstoneViewport extends Component {
     cornerstone.events[addOrRemoveEventListener](
       cornerstone.EVENTS.IMAGE_LOADED,
       this.onImageLoaded
+    );
+  }
+
+  /**
+   *
+   *
+   * @param {boolean} [clear=false] - True to clear event listeners
+   * @memberof CornerstoneViewport
+   * @returns {undefined}
+   */
+  _bindInternalElementEventListeners(clear = false) {
+    const addOrRemoveEventListener = clear
+      ? 'removeEventListener'
+      : 'addEventListener';
+
+    // Updates state's imageId, and imageIndex
+    this.element[addOrRemoveEventListener](
+      cornerstone.EVENTS.NEW_IMAGE,
+      this.onNewImage
     );
 
     // Updates state's viewport
@@ -461,10 +478,11 @@ class CornerstoneViewport extends Component {
 
   /**
    *
+   * @param {string} target - "cornerstone" || "element"
    * @param {boolean} [clear=false] - True to clear event listeners
    * @returns {undefined}
    */
-  _bindExternalEventListeners(clear = false) {
+  _bindExternalEventListeners(target, clear = false) {
     if (!this.eventListeners) {
       return;
     }
@@ -477,7 +495,9 @@ class CornerstoneViewport extends Component {
 
     for (let i = 0; i < this.eventListeners.length; i++) {
       const { target: targetType, eventName, handler } = this.eventListeners[i];
-      const target =
+      if (targetType !== target) { continue; }
+
+      const targetElementOrCornerstone =
         targetType === 'element' ? this.element : cornerstone.events;
 
       if (
@@ -490,7 +510,7 @@ class CornerstoneViewport extends Component {
         continue;
       }
 
-      target[addOrRemoveEventListener](eventName, handler);
+      targetElementOrCornerstone[addOrRemoveEventListener](eventName, handler);
     }
   }
 
@@ -611,6 +631,7 @@ class CornerstoneViewport extends Component {
 
     if (this.props.onNewImage) {
       this.props.onNewImage({
+        currentImageIdIndex,
         sopInstanceUid,
       });
     }
