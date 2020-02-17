@@ -147,7 +147,6 @@ class CornerstoneViewport extends Component {
     this._bindInternalCornerstoneEventListeners();
     this._bindExternalEventListeners("cornerstone");
 
-    // Enable
     cornerstone.enable(this.element, cornerstoneOptions);
 
     // ~~ EVENTS: ELEMENT
@@ -287,12 +286,6 @@ class CornerstoneViewport extends Component {
     if (Object.keys(updatedState).length > 0) {
       this.setState(updatedState);
     }
-
-    /* Rebind event listeners when props change to handle functional component method
-    this._bindExternalEventListeners("cornerstone", true);
-    this._bindExternalEventListeners("element", true);
-    this._bindExternalEventListeners("cornerstone");
-    this._bindExternalEventListeners("element"); */
   }
 
   /**
