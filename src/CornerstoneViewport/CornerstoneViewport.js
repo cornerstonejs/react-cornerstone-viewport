@@ -120,10 +120,9 @@ class CornerstoneViewport extends Component {
       isFlippedHorizontally: undefined,
     };
 
-    this._validateExternalEventsListeners();
-
     // TODO: Deep Copy? How does that work w/ handlers?
     // Save a copy. Props could change before `willUnmount`
+    this.eventListeners = this.props.eventListeners;
     this.startLoadHandler = this.props.startLoadHandler;
     this.endLoadHandler = this.props.endLoadHandler;
     this.loadHandlerTimeout = undefined; // "Loading..." timer
@@ -287,8 +286,6 @@ class CornerstoneViewport extends Component {
     if (Object.keys(updatedState).length > 0) {
       this.setState(updatedState);
     }
-
-    this._validateExternalEventsListeners();
   }
 
   /**
@@ -473,40 +470,29 @@ class CornerstoneViewport extends Component {
   }
 
   /**
-   * Listens out for all events and then defers handling to a single listener to act on them
    *
    * @param {string} target - "cornerstone" || "element"
    * @param {boolean} [clear=false] - True to clear event listeners
    * @returns {undefined}
    */
-  _bindExternalEventListeners(targetType, clear=false) {
-    const addOrRemoveEventListener = clear
-        ? 'removeEventListener'
-        : 'addEventListener';
-
-    const cornerstoneEvents = Object.values(cornerstone.EVENTS);
-    const cornerstoneToolsEvents = Object.values(cornerstoneTools.EVENTS);
-    const events = cornerstoneEvents.concat(cornerstoneToolsEvents);
-    const targetElementOrCornerstone =
-            targetType === 'element' ? this.element : cornerstone.events;
-    const targetListener = targetElementOrCornerstone[addOrRemoveEventListener];
-    const boundMethod = this._handleExternalEventListeners.bind(this);
-    for (let i = 0; i < events.length; i++) {
-        targetListener(events[i], boundMethod);
+  _bindExternalEventListeners(target, clear = false) {
+    if (!this.eventListeners) {
+      return;
     }
-  }
 
-  /**
-   * Called to validate that events passed into the event listeners prop are valid
-   *
-   * @returns {undefined}
-   */
-  _validateExternalEventsListeners() {
     const cornerstoneEvents = Object.values(cornerstone.EVENTS);
     const cornerstoneToolsEvents = Object.values(cornerstoneTools.EVENTS);
+    const addOrRemoveEventListener = clear
+      ? 'removeEventListener'
+      : 'addEventListener';
 
-    for (let i = 0; i < this.props.eventListeners.length; i++) {
-      const { target: targetType, eventName, handler } = this.props.eventListeners[i];
+    for (let i = 0; i < this.eventListeners.length; i++) {
+      const { target: targetType, eventName, handler } = this.eventListeners[i];
+      if (targetType !== target) { continue; }
+
+      const targetElementOrCornerstone =
+        targetType === 'element' ? this.element : cornerstone.events;
+
       if (
         !cornerstoneEvents.includes(eventName) &&
         !cornerstoneToolsEvents.includes(eventName)
@@ -516,25 +502,8 @@ class CornerstoneViewport extends Component {
         );
         continue;
       }
-    }
-  }
-  /**
-   * Handles delegating of events from cornerstone back to the defined
-   * external events handlers
-   *
-   * @param {event}
-   * @returns {undefined}
-   */
-  _handleExternalEventListeners(event){
-    if (!this.props.eventListeners) {
-      return;
-    }
-    for (let i = 0; i < this.props.eventListeners.length; i++) {
-      const { eventName, handler } = this.props.eventListeners[i];
 
-      if (event.type === eventName) {
-        handler(event);
-      }
+      targetElementOrCornerstone[addOrRemoveEventListener](eventName, handler);
     }
   }
 
