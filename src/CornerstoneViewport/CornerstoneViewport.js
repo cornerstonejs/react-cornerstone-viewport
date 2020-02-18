@@ -489,10 +489,9 @@ class CornerstoneViewport extends Component {
     const events = cornerstoneEvents.concat(cornerstoneToolsEvents);
     const targetElementOrCornerstone =
             targetType === 'element' ? this.element : cornerstone.events;
-    const targetListener = targetElementOrCornerstone[addOrRemoveEventListener];
     const boundMethod = this._handleExternalEventListeners.bind(this);
     for (let i = 0; i < events.length; i++) {
-        targetListener(events[i], boundMethod);
+        targetElementOrCornerstone[addOrRemoveEventListener](events[i], boundMethod);
     }
   }
 
