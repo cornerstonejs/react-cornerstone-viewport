@@ -146,13 +146,13 @@ class CornerstoneViewport extends Component {
     // ~~ EVENTS: CORNERSTONE
     this._handleOnElementEnabledEvent();
     this._bindInternalCornerstoneEventListeners();
-    this._bindExternalEventListeners("cornerstone");
+    this._bindExternalEventListeners('cornerstone');
 
     cornerstone.enable(this.element, cornerstoneOptions);
 
     // ~~ EVENTS: ELEMENT
     this._bindInternalElementEventListeners();
-    this._bindExternalEventListeners("element");
+    this._bindExternalEventListeners('element');
 
     if (resizeThrottleMs) {
       windowResizeHandler.enable(this.element, resizeThrottleMs);
@@ -281,7 +281,7 @@ class CornerstoneViewport extends Component {
 
     // ~~ OVERLAY
     if (isOverlayVisible !== prevIsOverlayVisible)
-      updatedState.isOverlayVisible = isOverlayVisible
+      updatedState.isOverlayVisible = isOverlayVisible;
 
     // ~~ STATE: Update aggregated state changes
     if (Object.keys(updatedState).length > 0) {
@@ -303,8 +303,8 @@ class CornerstoneViewport extends Component {
 
     this._bindInternalCornerstoneEventListeners(clear);
     this._bindInternalElementEventListeners(clear);
-    this._bindExternalEventListeners("cornerstone", clear);
-    this._bindExternalEventListeners("element", clear);
+    this._bindExternalEventListeners('cornerstone', clear);
+    this._bindExternalEventListeners('element', clear);
 
     this._setupLoadHandlers(clear);
     if (this.props.isStackPrefetchEnabled) {
@@ -479,19 +479,22 @@ class CornerstoneViewport extends Component {
    * @param {boolean} [clear=false] - True to clear event listeners
    * @returns {undefined}
    */
-  _bindExternalEventListeners(targetType, clear=false) {
+  _bindExternalEventListeners(targetType, clear = false) {
     const addOrRemoveEventListener = clear
-        ? 'removeEventListener'
-        : 'addEventListener';
+      ? 'removeEventListener'
+      : 'addEventListener';
 
     const cornerstoneEvents = Object.values(cornerstone.EVENTS);
     const cornerstoneToolsEvents = Object.values(cornerstoneTools.EVENTS);
     const events = cornerstoneEvents.concat(cornerstoneToolsEvents);
     const targetElementOrCornerstone =
-            targetType === 'element' ? this.element : cornerstone.events;
+      targetType === 'element' ? this.element : cornerstone.events;
     const boundMethod = this._handleExternalEventListeners.bind(this);
     for (let i = 0; i < events.length; i++) {
-        targetElementOrCornerstone[addOrRemoveEventListener](events[i], boundMethod);
+      targetElementOrCornerstone[addOrRemoveEventListener](
+        events[i],
+        boundMethod
+      );
     }
   }
 
@@ -501,11 +504,17 @@ class CornerstoneViewport extends Component {
    * @returns {undefined}
    */
   _validateExternalEventsListeners() {
+    if (!this.props.eventListeners) return;
+
     const cornerstoneEvents = Object.values(cornerstone.EVENTS);
     const cornerstoneToolsEvents = Object.values(cornerstoneTools.EVENTS);
 
     for (let i = 0; i < this.props.eventListeners.length; i++) {
-      const { target: targetType, eventName, handler } = this.props.eventListeners[i];
+      const {
+        target: targetType,
+        eventName,
+        handler,
+      } = this.props.eventListeners[i];
       if (
         !cornerstoneEvents.includes(eventName) &&
         !cornerstoneToolsEvents.includes(eventName)
@@ -524,7 +533,7 @@ class CornerstoneViewport extends Component {
    * @param {event}
    * @returns {undefined}
    */
-  _handleExternalEventListeners(event){
+  _handleExternalEventListeners(event) {
     if (!this.props.eventListeners) {
       return;
     }
