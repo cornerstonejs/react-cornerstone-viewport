@@ -473,7 +473,13 @@ class CornerstoneViewport extends Component {
   }
 
   /**
-   * Listens out for all events and then defers handling to a single listener to act on them
+   * TODO: The ordering here will cause ELEMENT_ENABLED and ELEMENT_DISABLED
+   *       events to never fire. We should have explicit callbacks for these,
+   *       and warn appropriately if user attempts to use them with this prop.
+   *
+   *
+   * Listens out for all events and then defers handling to a single listener to
+   * act on them
    *
    * @param {string} target - "cornerstone" || "element"
    * @param {boolean} [clear=false] - True to clear event listeners
@@ -484,15 +490,19 @@ class CornerstoneViewport extends Component {
       ? 'removeEventListener'
       : 'addEventListener';
 
+    // Unique list of event names
     const cornerstoneEvents = Object.values(cornerstone.EVENTS);
     const cornerstoneToolsEvents = Object.values(cornerstoneTools.EVENTS);
-    const events = cornerstoneEvents.concat(cornerstoneToolsEvents);
+    const csEventNames = cornerstoneEvents.concat(cornerstoneToolsEvents);
+
     const targetElementOrCornerstone =
       targetType === 'element' ? this.element : cornerstone.events;
     const boundMethod = this._handleExternalEventListeners.bind(this);
-    for (let i = 0; i < events.length; i++) {
+
+    // Bind our single handler to every cornerstone event
+    for (let i = 0; i < csEventNames.length; i++) {
       targetElementOrCornerstone[addOrRemoveEventListener](
-        events[i],
+        csEventNames[i],
         boundMethod
       );
     }
@@ -537,6 +547,7 @@ class CornerstoneViewport extends Component {
     if (!this.props.eventListeners) {
       return;
     }
+
     for (let i = 0; i < this.props.eventListeners.length; i++) {
       const { eventName, handler } = this.props.eventListeners[i];
 
