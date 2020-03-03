@@ -301,6 +301,7 @@ class CornerstoneViewport extends Component {
   componentWillUnmount() {
     const clear = true;
 
+    this._handleOnElementEnabledEvent(clear);
     this._bindInternalCornerstoneEventListeners(clear);
     this._bindInternalElementEventListeners(clear);
     this._bindExternalEventListeners('cornerstone', clear);
@@ -565,24 +566,27 @@ class CornerstoneViewport extends Component {
    * @memberof CornerstoneViewport
    * @returns {undefined}
    */
-  _handleOnElementEnabledEvent = () => {
+  _handleOnElementEnabledEvent = (clear = false) => {
     const handler = evt => {
       const elementThatWasEnabled = evt.detail.element;
       if (elementThatWasEnabled === this.element) {
         // Pass Event
         this.props.onElementEnabled(evt);
-
-        // Stop Listening
-        cornerstone.events.removeEventListener(
-          cornerstone.EVENTS.ELEMENT_ENABLED,
-          handler
-        );
       }
     };
 
     // Start Listening
-    if (this.props.onElementEnabled) {
+    if (this.props.onElementEnabled && !clear) {
       cornerstone.events.addEventListener(
+        cornerstone.EVENTS.ELEMENT_ENABLED,
+        handler
+      );
+    }
+
+    // Stop Listening
+    if (clear) {
+      // Stop Listening
+      cornerstone.events.removeEventListener(
         cornerstone.EVENTS.ELEMENT_ENABLED,
         handler
       );
