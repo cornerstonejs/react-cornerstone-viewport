@@ -24,5 +24,8 @@
     { "language": "javascriptreact", "autoFix": true }
   ],
   "prettier.disableLanguages": [],
-  "workbench.colorCustomizations": {}
+  "workbench.colorCustomizations": {},
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": true
+  }
 }
