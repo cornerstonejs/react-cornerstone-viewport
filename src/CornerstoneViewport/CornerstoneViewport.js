@@ -585,7 +585,6 @@ class CornerstoneViewport extends Component {
 
     // Stop Listening
     if (clear) {
-      // Stop Listening
       cornerstone.events.removeEventListener(
         cornerstone.EVENTS.ELEMENT_ENABLED,
         handler
