@@ -228,6 +228,7 @@ class CornerstoneViewport extends Component {
       try {
         // load + display image
         const imageId = stack[imageIndex];
+        cornerstoneTools.stopClip(this.element);
         const image = await cornerstone.loadAndCacheImage(imageId);
 
         cornerstone.displayImage(this.element, image);
@@ -269,7 +270,9 @@ class CornerstoneViewport extends Component {
       isOverlayVisible: prevIsOverlayVisible,
     } = prevProps;
     const validFrameRate = Math.max(frameRate, 1);
-    const shouldStart = isPlaying !== prevIsPlaying && isPlaying;
+    const shouldStart =
+      (isPlaying !== prevIsPlaying && isPlaying) ||
+      (isPlaying && hasStackChanged);
     const shouldPause = isPlaying !== prevIsPlaying && !isPlaying;
     const hasFrameRateChanged = isPlaying && frameRate !== prevFrameRate;
 
