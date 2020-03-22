@@ -107,7 +107,6 @@ class CornerstoneViewport extends Component {
       imageIdIndex, // Maybe
       imageProgress: 0,
       isLoading: true,
-      numImagesLoaded: 0,
       error: null,
       // Overlay
       scale: undefined,
@@ -127,6 +126,8 @@ class CornerstoneViewport extends Component {
     this.startLoadHandler = this.props.startLoadHandler;
     this.endLoadHandler = this.props.endLoadHandler;
     this.loadHandlerTimeout = undefined; // "Loading..." timer
+
+    this.numImagesLoaded = 0;
   }
 
   // ~~ LIFECYCLE
@@ -686,9 +687,7 @@ class CornerstoneViewport extends Component {
   onImageLoaded = () => {
     // TODO: This is not necessarily true :thinking:
     // We need better cache reporting a layer up
-    this.setState({
-      numImagesLoaded: this.state.numImagesLoaded + 1,
-    });
+    this.numImagesLoaded++;
   };
 
   onImageProgress = e => {
