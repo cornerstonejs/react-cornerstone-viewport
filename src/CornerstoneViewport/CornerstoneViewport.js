@@ -211,7 +211,8 @@ class CornerstoneViewport extends Component {
       isStackPrefetchEnabled: prevIsStackPrefetchEnabled,
     } = prevProps;
     const hasStackChanged = !areStringArraysEqual(prevStack, stack);
-    const hasImageIndexChanged = imageIndex !== prevImageIndex;
+    const hasImageIndexChanged =
+      imageIndex != null && imageIndex !== prevImageIndex;
     let updatedState = {};
 
     if (hasStackChanged) {
@@ -219,7 +220,7 @@ class CornerstoneViewport extends Component {
       cornerstoneTools.clearToolState(this.element, 'stack');
       cornerstoneTools.addToolState(this.element, 'stack', {
         imageIds: [...stack],
-        currentImageIdIndex: imageIndex,
+        currentImageIdIndex: imageIndex || 0,
       });
 
       // New stack; reset counter
@@ -228,7 +229,7 @@ class CornerstoneViewport extends Component {
 
       try {
         // load + display image
-        const imageId = stack[imageIndex];
+        const imageId = stack[imageIndex || 0];
         cornerstoneTools.stopClip(this.element);
         const image = await cornerstone.loadAndCacheImage(imageId);
 
@@ -711,6 +712,10 @@ class CornerstoneViewport extends Component {
     }
   };
 
+  onResize = () => {
+    cornerstone.resize(this.element);
+  };
+
   render() {
     const isLoading = this.state.isLoading;
     const displayLoadingIndicator = isLoading || this.state.error;
@@ -730,9 +735,7 @@ class CornerstoneViewport extends Component {
           skipOnMount={true}
           refreshMode={'throttle'}
           refreshRate={this.props.resizeThrottleMs}
-          onResize={() => {
-            cornerstone.resize(this.element);
-          }}
+          onResize={this.onResize}
         />
         <div
           className="viewport-element"
