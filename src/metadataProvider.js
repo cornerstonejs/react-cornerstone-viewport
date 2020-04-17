@@ -85,6 +85,7 @@ function wadoUriMetaDataProvider(type, imageId) {
 
   if (type === 'generalImageModule') {
     return {
+      sopInstanceUid: dataSet.string('x00080018'),
       instanceNumber: dataSet.intString('x00200013'),
       lossyImageCompression: dataSet.string('x00282110'),
       lossyImageCompressionRatio: dataSet.string('x00282112'),
