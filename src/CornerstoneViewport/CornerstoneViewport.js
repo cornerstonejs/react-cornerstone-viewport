@@ -9,6 +9,7 @@ import windowResizeHandler from './windowResizeHandler.js';
 import cornerstone from 'cornerstone-core';
 import cornerstoneTools from 'cornerstone-tools';
 import ReactResizeDetector from 'react-resize-detector/lib/index.js';
+import debounce from 'lodash.debounce';
 
 // Util
 import areStringArraysEqual from './../helpers/areStringArraysEqual.js';
@@ -49,6 +50,7 @@ class CornerstoneViewport extends Component {
     //
     setViewportActive: PropTypes.func, // Called when viewport should be set to active?
     onNewImage: PropTypes.func,
+    onNewImageDebounceTime: PropTypes.number,
     viewportOverlayComponent: PropTypes.oneOfType([
       PropTypes.string,
       PropTypes.func,
@@ -91,6 +93,7 @@ class CornerstoneViewport extends Component {
     loadingIndicatorComponent: LoadingIndicator,
     resizeThrottleMs: 200,
     tools: [],
+    onNewImageDebounceTime: 0,
   };
 
   constructor(props) {
@@ -668,7 +671,7 @@ class CornerstoneViewport extends Component {
     });
   };
 
-  onNewImage = event => {
+  onNewImage = debounce(event => {
     const { imageId } = event.detail.image;
     const { sopInstanceUid } =
       cornerstone.metaData.get('generalImageModule', imageId) || {};
@@ -686,7 +689,7 @@ class CornerstoneViewport extends Component {
         sopInstanceUid,
       });
     }
-  };
+  }, this.props.onNewImageDebounceTime);
 
   onImageLoaded = () => {
     // TODO: This is not necessarily true :thinking:
