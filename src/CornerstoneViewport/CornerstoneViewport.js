@@ -50,6 +50,7 @@ class CornerstoneViewport extends Component {
     //
     setViewportActive: PropTypes.func, // Called when viewport should be set to active?
     onNewImage: PropTypes.func,
+    onNewImageDebounced: PropTypes.func,
     onNewImageDebounceTime: PropTypes.number,
     viewportOverlayComponent: PropTypes.oneOfType([
       PropTypes.string,
@@ -452,6 +453,12 @@ class CornerstoneViewport extends Component {
       this.onNewImage
     );
 
+    // Updates state's imageId, and imageIndex
+    this.element[addOrRemoveEventListener](
+      cornerstone.EVENTS.NEW_IMAGE,
+      this.onNewImageDebounced
+    );
+
     // Updates state's viewport
     this.element[addOrRemoveEventListener](
       cornerstone.EVENTS.IMAGE_RENDERED,
@@ -671,7 +678,7 @@ class CornerstoneViewport extends Component {
     });
   };
 
-  onNewImage = debounce(event => {
+  onNewImageHandler = (event, callback) => {
     const { imageId } = event.detail.image;
     const { sopInstanceUid } =
       cornerstone.metaData.get('generalImageModule', imageId) || {};
@@ -679,16 +686,17 @@ class CornerstoneViewport extends Component {
 
     // TODO: Should we grab and set some imageId specific metadata here?
     // Could prevent cornerstone dependencies in child components.
-    this.setState({
-      imageIdIndex: currentImageIdIndex,
-    });
+    this.setState({ imageIdIndex: currentImageIdIndex });
 
-    if (this.props.onNewImage) {
-      this.props.onNewImage({
-        currentImageIdIndex,
-        sopInstanceUid,
-      });
+    if (callback) {
+      callback({ currentImageIdIndex, sopInstanceUid });
     }
+  };
+
+  onNewImage = event => this.onNewImageHandler(event, this.props.onNewImage);
+
+  onNewImageDebounced = debounce(event => {
+    this.onNewImageHandler(event, this.props.onNewImageDebounced);
   }, this.props.onNewImageDebounceTime);
 
   onImageLoaded = () => {
