@@ -9,7 +9,11 @@ Documentation and Examples: [https://react.cornerstonejs.org/](https://react.cor
 ## Install
 
 ```bash
+## NPM
 npm install --save react-cornerstone-viewport
+
+## Yarn
+yarn add react-cornerstone-viewport
 ```
 
 ## Usage
