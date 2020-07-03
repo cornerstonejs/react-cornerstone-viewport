@@ -71,8 +71,11 @@ class CornerstoneViewport extends Component {
       PropTypes.element,
       PropTypes.func,
     ]),
+    /** false to enable automatic viewport resizing */
     enableResizeDetector: PropTypes.bool,
+    /** rate at witch to apply resize mode's logic */
     resizeRefreshRateMs: PropTypes.number,
+    /** whether resize refresh behavior is exhibited as throttle or debounce */
     resizeRefreshMode: PropTypes.oneOf(['throttle', 'debounce']),
     //
     style: PropTypes.object,
