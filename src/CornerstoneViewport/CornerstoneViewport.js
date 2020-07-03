@@ -5,7 +5,6 @@ import ImageScrollbar from '../ImageScrollbar/ImageScrollbar.js';
 import ViewportOverlay from '../ViewportOverlay/ViewportOverlay.js';
 import LoadingIndicator from '../LoadingIndicator/LoadingIndicator.js';
 import ViewportOrientationMarkers from '../ViewportOrientationMarkers/ViewportOrientationMarkers.js';
-import windowResizeHandler from './windowResizeHandler.js';
 import cornerstone from 'cornerstone-core';
 import cornerstoneTools from 'cornerstone-tools';
 import ReactResizeDetector from 'react-resize-detector/lib/index.js';
@@ -72,7 +71,12 @@ class CornerstoneViewport extends Component {
       PropTypes.element,
       PropTypes.func,
     ]),
-    resizeThrottleMs: PropTypes.number, // 0 to disable
+    /** false to enable automatic viewport resizing */
+    enableResizeDetector: PropTypes.bool,
+    /** rate at witch to apply resize mode's logic */
+    resizeRefreshRateMs: PropTypes.number,
+    /** whether resize refresh behavior is exhibited as throttle or debounce */
+    resizeRefreshMode: PropTypes.oneOf(['throttle', 'debounce']),
     //
     style: PropTypes.object,
     className: PropTypes.string,
@@ -92,7 +96,9 @@ class CornerstoneViewport extends Component {
     isOverlayVisible: true,
     loadIndicatorDelay: 45,
     loadingIndicatorComponent: LoadingIndicator,
-    resizeThrottleMs: 200,
+    enableResizeDetector: true,
+    resizeRefreshRateMs: 200,
+    resizeRefreshMode: 'debounce',
     tools: [],
     onNewImageDebounceTime: 0,
   };
@@ -141,7 +147,6 @@ class CornerstoneViewport extends Component {
       isStackPrefetchEnabled,
       cornerstoneOptions,
       imageIds,
-      resizeThrottleMs,
       isPlaying,
       frameRate,
     } = this.props;
@@ -158,10 +163,6 @@ class CornerstoneViewport extends Component {
     // ~~ EVENTS: ELEMENT
     this._bindInternalElementEventListeners();
     this._bindExternalEventListeners('element');
-
-    if (resizeThrottleMs) {
-      windowResizeHandler.enable(this.element, resizeThrottleMs);
-    }
 
     // Only after `uuid` is set for enabledElement
     this._setupLoadHandlers();
@@ -315,16 +316,14 @@ class CornerstoneViewport extends Component {
     this._bindInternalElementEventListeners(clear);
     this._bindExternalEventListeners('cornerstone', clear);
     this._bindExternalEventListeners('element', clear);
-
     this._setupLoadHandlers(clear);
+
     if (this.props.isStackPrefetchEnabled) {
       _enableStackPrefetching(this.element, clear);
     }
+
     cornerstoneTools.clearToolState(this.element, 'stackPrefetch');
     cornerstoneTools.stopClip(this.element);
-    if (this.props.resizeThrottleMs) {
-      windowResizeHandler.disable(this.element);
-    }
     cornerstone.disable(this.element);
   }
 
@@ -740,14 +739,16 @@ class CornerstoneViewport extends Component {
         style={this.props.style}
         className={classNames('viewport-wrapper', this.props.className)}
       >
-        <ReactResizeDetector
-          handleWidth
-          handleHeight
-          skipOnMount={true}
-          refreshMode={'throttle'}
-          refreshRate={this.props.resizeThrottleMs}
-          onResize={this.onResize}
-        />
+        {this.props.enableResizeDetector && (
+          <ReactResizeDetector
+            handleWidth
+            handleHeight
+            skipOnMount={true}
+            refreshMode={this.props.resizeRefreshMode}
+            refreshRate={this.props.resizeRefreshRateMs}
+            onResize={this.onResize}
+          />
+        )}
         <div
           className="viewport-element"
           onContextMenu={e => e.preventDefault()}
