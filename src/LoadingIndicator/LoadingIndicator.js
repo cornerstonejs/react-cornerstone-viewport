@@ -34,7 +34,6 @@ class LoadingIndicator extends PureComponent {
               <h2>
                 {pc < 100 ? 'Loading...' : 'Loaded -'}
                 <i className="fa fa-spin fa-circle-o-notch fa-fw" />{' '}
-                {percComplete}
               </h2>
               {pc === 100 && <p>Processing...</p>}
             </div>
