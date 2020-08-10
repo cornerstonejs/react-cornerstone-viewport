@@ -807,16 +807,7 @@ function _trySetActiveTool(element, activeToolName) {
   });
 }
 
-// TODO: Move configuration elsewhere
-// This is app wide, right?
-// Why would we configure this per element?
 function _enableStackPrefetching(element, clear = false) {
-  cornerstoneTools.stackPrefetch.setConfiguration({
-    maxImagesToPrefetch: Infinity,
-    preserveExistingPool: false,
-    maxSimultaneousRequests: 6,
-  });
-
   if (clear) {
     cornerstoneTools.stackPrefetch.disable(element);
   } else {
