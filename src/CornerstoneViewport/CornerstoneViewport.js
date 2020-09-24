@@ -187,7 +187,7 @@ class CornerstoneViewport extends Component {
       cornerstone.displayImage(this.element, image);
 
       if (isStackPrefetchEnabled) {
-        _enableStackPrefetching(this.element);
+        cornerstoneTools.stackPrefetch.enable(this.element);
       }
 
       if (isPlaying) {
@@ -254,10 +254,7 @@ class CornerstoneViewport extends Component {
 
     // Need to stop/start to pickup stack changes in prefetcher
     if (shouldStopStartStackPrefetch) {
-      const clear = true;
-
-      _enableStackPrefetching(this.element, clear);
-      _enableStackPrefetching(this.element);
+      cornerstoneTools.stackPrefetch.enable(this.element);
     }
 
     // ~~ ACTIVE TOOL
@@ -319,7 +316,7 @@ class CornerstoneViewport extends Component {
     this._setupLoadHandlers(clear);
 
     if (this.props.isStackPrefetchEnabled) {
-      _enableStackPrefetching(this.element, clear);
+      cornerstoneTools.stackPrefetch.disable(this.element);
     }
 
     cornerstoneTools.clearToolState(this.element, 'stackPrefetch');
@@ -714,85 +711,6 @@ class CornerstoneViewport extends Component {
     this.setViewportActive();
 
     scrollToIndex(this.element, value);
-
-    this.resetPrefetching(value);
-  };
-
-  resetPrefetching = imageIdIndex => {
-    cornerstoneTools.stackPrefetch.setConfiguration({
-      maxImagesToPrefetch: Infinity,
-      preserveExistingPool: false,
-      maxSimultaneousRequests: 6,
-    });
-
-    const { imageIds } = this.props;
-
-    const minImageIdIndex = 0;
-    const maxImageIdIndex = imageIds.length - 1;
-
-    let lowerImageIdIndex = imageIdIndex;
-    let upperImageIdIndex = imageIdIndex;
-
-    // Build up an array of images to prefetch, starting with the current image.
-    let imageIdsToPrefetch = [imageIds[imageIdIndex]];
-
-    // 0: From current stack position down to minimum.
-    // 1: From current stack position up to maximum.
-
-    const prefetchQueuedFilled = [false, false];
-
-    // Check if on edges and some criteria is already fulfilled
-
-    if (imageIdIndex === minImageIdIndex) {
-      prefetchQueuedFilled[0] = true;
-    } else if (imageIdIndex === maxImageIdIndex) {
-      prefetchQueuedFilled[1] = true;
-    }
-
-    while (
-      prefetchQueuedFilled[0] === false ||
-      prefetchQueuedFilled[1] === false
-    ) {
-      if (prefetchQueuedFilled[0] === false) {
-        // Add imageId bellow
-        lowerImageIdIndex--;
-        imageIdsToPrefetch.push(imageIds[lowerImageIdIndex]);
-
-        if (lowerImageIdIndex === minImageIdIndex) {
-          prefetchQueuedFilled[0] = true;
-        }
-      }
-
-      if (prefetchQueuedFilled[1] === false) {
-        // Add imageId above
-        upperImageIdIndex++;
-        imageIdsToPrefetch.push(imageIds[upperImageIdIndex]);
-
-        if (upperImageIdIndex === maxImageIdIndex) {
-          prefetchQueuedFilled[1] = true;
-        }
-      }
-    }
-
-    const requestPoolManager = cornerstoneTools.requestPoolManager;
-    const requestType = 'prefetch';
-    const preventCache = false;
-    const noop = () => {};
-
-    requestPoolManager.clearRequestStack('prefetch');
-
-    imageIdsToPrefetch.forEach(imageId => {
-      requestPoolManager.addRequest(
-        {},
-        imageId,
-        requestType,
-        preventCache,
-        noop,
-        noop
-      );
-    });
-
-    requestPoolManager.startGrabbing();
   };
 
   setViewportActive = () => {
@@ -884,14 +802,6 @@ function _trySetActiveTool(element, activeToolName) {
   cornerstoneTools.setToolActiveForElement(element, activeToolName, {
     mouseButtonMask: 1,
   });
-}
-
-function _enableStackPrefetching(element, clear = false) {
-  if (clear) {
-    cornerstoneTools.stackPrefetch.disable(element);
-  } else {
-    cornerstoneTools.stackPrefetch.enable(element);
-  }
 }
 
 /**
