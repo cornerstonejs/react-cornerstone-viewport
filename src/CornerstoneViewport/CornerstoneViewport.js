@@ -184,6 +184,7 @@ class CornerstoneViewport extends Component {
       const image = await cornerstone.loadAndCacheImage(imageId);
 
       // Display
+
       cornerstone.displayImage(this.element, image);
 
       if (isStackPrefetchEnabled) {
