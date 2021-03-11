@@ -38,8 +38,14 @@ function getCompression(imageId) {
 class ViewportOverlay extends PureComponent {
   static propTypes = {
     scale: PropTypes.number.isRequired,
-    windowWidth: PropTypes.number.isRequired,
-    windowCenter: PropTypes.number.isRequired,
+    windowWidth: PropTypes.oneOfType([
+      PropTypes.number.isRequired,
+      PropTypes.string.isRequired,
+    ]),
+    windowCenter: PropTypes.oneOfType([
+      PropTypes.number.isRequired,
+      PropTypes.string.isRequired,
+    ]),
     imageId: PropTypes.string.isRequired,
     imageIndex: PropTypes.number.isRequired,
     stackSize: PropTypes.number.isRequired,
@@ -77,7 +83,9 @@ class ViewportOverlay extends PureComponent {
 
     const frameRate = formatNumberPrecision(1000 / frameTime, 1);
     const compression = getCompression(imageId);
-    const wwwc = `W: ${windowWidth.toFixed(0)} L: ${windowCenter.toFixed(0)}`;
+    const wwwc = `W: ${
+      windowWidth.toFixed ? windowWidth.toFixed(0) : windowWidth
+    } L: ${windowWidth.toFixed ? windowCenter.toFixed(0) : windowCenter}`;
     const imageDimensions = `${columns} x ${rows}`;
 
     const { imageIndex, stackSize } = this.props;
