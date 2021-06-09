@@ -15,3 +15,13 @@
   top: 47%;
   left: 5px;
 }
+
+.ViewportOrientationMarkers .right-mid {
+  top: 47%;
+  left: 97%;
+}
+
+.ViewportOrientationMarkers .bottom-mid {
+  top: 97%;
+  left: 47%;
+}

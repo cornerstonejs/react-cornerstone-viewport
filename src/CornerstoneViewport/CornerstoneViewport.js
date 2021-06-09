@@ -81,6 +81,7 @@ class CornerstoneViewport extends Component {
     style: PropTypes.object,
     className: PropTypes.string,
     isOverlayVisible: PropTypes.bool,
+    orientationMarkers: PropTypes.arrayOf(PropTypes.string),
   };
 
   static defaultProps = {
@@ -101,6 +102,7 @@ class CornerstoneViewport extends Component {
     resizeRefreshMode: 'debounce',
     tools: [],
     onNewImageDebounceTime: 0,
+    orientationMarkers: ['top', 'left'],
   };
 
   constructor(props) {
@@ -375,7 +377,7 @@ class CornerstoneViewport extends Component {
    * @memberof CornerstoneViewport
    */
   getOrientationMarkersOverlay() {
-    const { imageIds } = this.props;
+    const { imageIds, orientationMarkers } = this.props;
     const {
       imageIdIndex,
       rotationDegrees,
@@ -403,6 +405,7 @@ class CornerstoneViewport extends Component {
         rotationDegrees={rotationDegrees}
         isFlippedVertically={isFlippedVertically}
         isFlippedHorizontally={isFlippedHorizontally}
+        orientationMarkers={orientationMarkers}
       />
     );
   }
