@@ -47,6 +47,7 @@ class CornerstoneViewport extends Component {
     isPlaying: PropTypes.bool,
     frameRate: PropTypes.number, // Between 1 and ?
     //
+    initialViewport: PropTypes.object,
     setViewportActive: PropTypes.func, // Called when viewport should be set to active?
     onNewImage: PropTypes.func,
     onNewImageDebounced: PropTypes.func,
@@ -91,6 +92,7 @@ class CornerstoneViewport extends Component {
     cineFrameRate: 24,
     viewportOverlayComponent: ViewportOverlay,
     imageIds: ['no-id://'],
+    initialViewport: {},
     // Init
     cornerstoneOptions: {},
     isStackPrefetchEnabled: false,
@@ -151,6 +153,7 @@ class CornerstoneViewport extends Component {
       imageIds,
       isPlaying,
       frameRate,
+      initialViewport,
     } = this.props;
     const { imageIdIndex } = this.state;
     const imageId = imageIds[imageIdIndex];
@@ -187,7 +190,7 @@ class CornerstoneViewport extends Component {
 
       // Display
 
-      cornerstone.displayImage(this.element, image);
+      cornerstone.displayImage(this.element, image, initialViewport);
 
       if (isStackPrefetchEnabled) {
         cornerstoneTools.stackPrefetch.enable(this.element);
@@ -212,6 +215,7 @@ class CornerstoneViewport extends Component {
       imageIds: stack,
       imageIdIndex: imageIndex,
       isStackPrefetchEnabled,
+      initialViewport,
     } = this.props;
     const {
       imageIds: prevStack,
@@ -241,7 +245,7 @@ class CornerstoneViewport extends Component {
         cornerstoneTools.stopClip(this.element);
         const image = await cornerstone.loadAndCacheImage(imageId);
 
-        cornerstone.displayImage(this.element, image);
+        cornerstone.displayImage(this.element, image, initialViewport);
         cornerstone.reset(this.element);
       } catch (err) {
         // :wave:
