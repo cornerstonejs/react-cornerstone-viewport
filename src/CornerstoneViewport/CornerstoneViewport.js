@@ -744,7 +744,7 @@ class CornerstoneViewport extends Component {
         style={this.props.style}
         className={classNames('viewport-wrapper', this.props.className)}
       >
-        {this.props.enableResizeDetector && (
+        {this.props.enableResizeDetector && this.element != null && (
           <ReactResizeDetector
             handleWidth
             handleHeight
@@ -752,6 +752,7 @@ class CornerstoneViewport extends Component {
             refreshMode={this.props.resizeRefreshMode}
             refreshRate={this.props.resizeRefreshRateMs}
             onResize={this.onResize}
+            targetDomEl={this.element}
           />
         )}
         <div
