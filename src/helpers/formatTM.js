@@ -15,7 +15,7 @@ export default function formatTM(time, strFormat = 'HH:mm:ss') {
   try {
     const inputFormat = 'HHmmss.SSS';
     const strTime = time.toString().substring(0, inputFormat.length);
-    const parsedDateTime = parse(strTime, 'HHmmss.SSS', new Date(0));
+    const parsedDateTime = parse(strTime, inputFormat.substring(0,strTime.length), new Date(0));
     const formattedDateTime = format(parsedDateTime, strFormat);
 
     return formattedDateTime;
