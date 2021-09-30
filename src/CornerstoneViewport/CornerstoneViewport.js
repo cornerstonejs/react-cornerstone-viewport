@@ -15,6 +15,10 @@ import areStringArraysEqual from './../helpers/areStringArraysEqual.js';
 
 import './CornerstoneViewport.css';
 
+const addToBeginning = true;
+const priority = -5;
+const requestType = 'interaction';
+
 const scrollToIndex = cornerstoneTools.importInternal('util/scrollToIndex');
 const { loadHandlerManager } = cornerstoneTools;
 
@@ -186,11 +190,27 @@ class CornerstoneViewport extends Component {
       });
 
       // Load first image in stack
-      const image = await cornerstone.loadAndCacheImage(imageId);
+      const options = {
+        addToBeginning,
+        priority,
+      };
 
-      // Display
+      const requestFn = (imageId, options) => {
+        return cornerstone.loadAndCacheImage(imageId, options).then((image) => {
+          cornerstone.displayImage(this.element, image, initialViewport);
+        });
+      };
 
-      cornerstone.displayImage(this.element, image, initialViewport);
+      // 1. Load the image using the ImageLoadingPool
+      cornerstone.imageLoadPoolManager.addRequest(
+        requestFn.bind(this, imageId, options),
+        requestType,
+        {
+          imageId,
+        },
+        priority,
+        addToBeginning
+      );
 
       if (isStackPrefetchEnabled) {
         cornerstoneTools.stackPrefetch.enable(this.element);
@@ -243,10 +263,24 @@ class CornerstoneViewport extends Component {
         // load + display image
         const imageId = stack[imageIndex || 0];
         cornerstoneTools.stopClip(this.element);
-        const image = await cornerstone.loadAndCacheImage(imageId);
+        const requestFn = (imageId, options) => {
+          return cornerstone
+            .loadAndCacheImage(imageId, options)
+            .then((image) => {
+              cornerstone.displayImage(this.element, image, initialViewport);
+              cornerstone.reset(this.element);
+            });
+        };
 
-        cornerstone.displayImage(this.element, image, initialViewport);
-        cornerstone.reset(this.element);
+        cornerstone.imageLoadPoolManager.addRequest(
+          requestFn.bind(this, imageId, { addToBeginning, priority }),
+          requestType,
+          {
+            imageId,
+          },
+          priority,
+          addToBeginning
+        );
       } catch (err) {
         // :wave:
         // What if user kills component before `displayImage`?
@@ -350,13 +384,8 @@ class CornerstoneViewport extends Component {
    */
   getOverlay() {
     const { viewportOverlayComponent: Component, imageIds } = this.props;
-    const {
-      imageIdIndex,
-      scale,
-      windowWidth,
-      windowCenter,
-      isOverlayVisible,
-    } = this.state;
+    const { imageIdIndex, scale, windowWidth, windowCenter, isOverlayVisible } =
+      this.state;
     const imageId = imageIds[imageIdIndex];
     return (
       imageId &&
@@ -586,7 +615,7 @@ class CornerstoneViewport extends Component {
    * @returns {undefined}
    */
   _handleOnElementEnabledEvent = (clear = false) => {
-    const handler = evt => {
+    const handler = (evt) => {
       const elementThatWasEnabled = evt.detail.element;
       if (elementThatWasEnabled === this.element) {
         // Pass Event
@@ -633,7 +662,7 @@ class CornerstoneViewport extends Component {
 
     // We use this to "flip" `isLoading` to true, if our startLoading request
     // takes longer than our "loadIndicatorDelay"
-    const startLoadHandler = element => {
+    const startLoadHandler = (element) => {
       clearTimeout(this.loadHandlerTimeout);
 
       // Call user defined loadHandler
@@ -669,7 +698,7 @@ class CornerstoneViewport extends Component {
   }
 
   // TODO: May need to throttle?
-  onImageRendered = event => {
+  onImageRendered = (event) => {
     const viewport = event.detail.viewport;
 
     this.setState({
@@ -697,9 +726,9 @@ class CornerstoneViewport extends Component {
     }
   };
 
-  onNewImage = event => this.onNewImageHandler(event, this.props.onNewImage);
+  onNewImage = (event) => this.onNewImageHandler(event, this.props.onNewImage);
 
-  onNewImageDebounced = debounce(event => {
+  onNewImageDebounced = debounce((event) => {
     this.onNewImageHandler(event, this.props.onNewImageDebounced);
   }, this.props.onNewImageDebounceTime);
 
@@ -709,13 +738,13 @@ class CornerstoneViewport extends Component {
     this.numImagesLoaded++;
   };
 
-  onImageProgress = e => {
+  onImageProgress = (e) => {
     this.setState({
       imageProgress: e.detail.percentComplete,
     });
   };
 
-  imageSliderOnInputCallback = value => {
+  imageSliderOnInputCallback = (value) => {
     this.setViewportActive();
 
     scrollToIndex(this.element, value);
@@ -757,9 +786,9 @@ class CornerstoneViewport extends Component {
         )}
         <div
           className="viewport-element"
-          onContextMenu={e => e.preventDefault()}
-          onMouseDown={e => e.preventDefault()}
-          ref={input => {
+          onContextMenu={(e) => e.preventDefault()}
+          onMouseDown={(e) => e.preventDefault()}
+          ref={(input) => {
             this.element = input;
           }}
         >
@@ -796,9 +825,9 @@ function _trySetActiveTool(element, activeToolName) {
   }
 
   const validTools = cornerstoneTools.store.state.tools.filter(
-    tool => tool.element === element
+    (tool) => tool.element === element
   );
-  const validToolNames = validTools.map(tool => tool.name);
+  const validToolNames = validTools.map((tool) => tool.name);
 
   if (!validToolNames.includes(activeToolName)) {
     console.warn(
