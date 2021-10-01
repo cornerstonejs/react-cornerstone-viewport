@@ -2,8 +2,8 @@ const path = require('path');
 const webpack = require('webpack');
 const autoprefixer = require('autoprefixer');
 // Plugins
-const BundleAnalyzerPlugin = require('webpack-bundle-analyzer')
-  .BundleAnalyzerPlugin;
+const BundleAnalyzerPlugin =
+  require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
 const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 const vtkRules = require('vtk.js/Utilities/config/dependency.js').webpack.core
   .rules;
@@ -58,6 +58,7 @@ module.exports = (env, argv) => {
     },
     resolve: {
       modules: [path.resolve(__dirname, './../node_modules'), SRC_PATH],
+      fallback: { fs: false, path: false, zlib: false },
     },
     externals: [
       // Used to build/load metadata
