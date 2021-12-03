@@ -121,7 +121,7 @@ class ViewportOrientationMarkers extends PureComponent {
           className={`${m}-mid orientation-marker`}
           key={`${m}-mid orientation-marker`}
         >
-          {markers[m]}
+          <div className="orientation-marker-value">{markers[m]}</div>
         </div>
       ));
 
