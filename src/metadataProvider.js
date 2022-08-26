@@ -110,7 +110,7 @@ function wadoUriMetaDataProvider(type, imageId) {
 
   if (type === 'cineModule') {
     return {
-      frameTime: dataSet.float('x00181063'),
+      frameTime: dataSet.floatString('x00181063'),
     };
   }
 
