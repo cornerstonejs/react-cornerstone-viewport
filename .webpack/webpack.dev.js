@@ -20,7 +20,7 @@ module.exports = {
     library: 'cornerstoneViewport',
     libraryTarget: 'umd',
     globalObject: 'this',
-    clean: true
+    clean: true,
   },
   module: {
     rules: [
@@ -41,7 +41,7 @@ module.exports = {
     alias: {
       '@cornerstone-viewport': ENTRY_VIEWPORT,
     },
-    fallback: { fs: false, path: false },
+    fallback: { fs: false, path: false, zlib: false },
   },
   plugins: [
     // Show build progress
