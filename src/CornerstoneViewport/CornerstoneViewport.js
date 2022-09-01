@@ -298,6 +298,22 @@ class CornerstoneViewport extends Component {
       cornerstoneTools.stackPrefetch.enable(this.element);
     }
 
+    // ~~ TOOLS
+
+    const { tools } = this.props;
+    const { tools: prevTools } = prevProps;
+
+    // Could be done by checking one by one
+    // but then we have to make sure the order is the same
+    // this ways checks if anything in the tools definition has changed
+    // Current `hasToolsChanges` is almost always true because prevTools have `toolClass` property
+    // TODO create list of tools to update and use only them
+    const hasToolsChanges = JSON.stringify(tools) !== JSON.stringify(prevTools);
+
+    if (hasToolsChanges) {
+      _updateExistingTools(tools, this.element);
+    }
+
     // ~~ ACTIVE TOOL
     const { activeTool } = this.props;
     const { activeTool: prevActiveTool } = prevProps;
@@ -850,13 +866,7 @@ function _trySetActiveTool(element, activeToolName) {
  */
 function _addAndConfigureInitialToolsForElement(tools, element) {
   for (let i = 0; i < tools.length; i++) {
-    const tool =
-      typeof tools[i] === 'string'
-        ? { name: tools[i] }
-        : Object.assign({}, tools[i]);
-    const toolName = `${tool.name}Tool`; // Top level CornerstoneTools follow this pattern
-
-    tool.toolClass = tool.toolClass || cornerstoneTools[toolName];
+    const tool = _unifyToolStructure(tools[i]);
 
     if (!tool.toolClass) {
       console.warn(`Unable to add tool with name '${tool.name}'.`);
@@ -869,16 +879,60 @@ function _addAndConfigureInitialToolsForElement(tools, element) {
       tool.props || {}
     );
 
-    const hasInitialMode =
-      tool.mode && AVAILABLE_TOOL_MODES.includes(tool.mode);
+    _modifyToolsMode(tool, element);
+  }
+}
 
-    if (hasInitialMode) {
-      // TODO: We may need to check `tool.props` and the tool class's prototype
-      // to determine the name it registered with cornerstone. `tool.name` is not
-      // reliable.
-      const setToolModeFn = TOOL_MODE_FUNCTIONS[tool.mode];
-      setToolModeFn(element, tool.name, tool.modeOptions || {});
+/**
+ * Iterate over the provided tools; Update tools
+ *
+ * @param {string[]|object[]} tools
+ * @param {HTMLElement} element
+ */
+function _updateExistingTools(tools, element) {
+  for (let i = 0; i < tools.length; i++) {
+    const tool = _unifyToolStructure(tools[i]);
+
+    if (!tool.toolClass) {
+      console.warn(`Unable to update tool with name '${tool.name}'.`);
+      continue;
     }
+
+    _modifyToolsMode(tool, element);
+  }
+}
+
+/**
+ * Parse provided tool to tool object
+ *
+ * @param {string|object} tool
+ * @returns {object} Valid cornerstone tool object
+ */
+function _unifyToolStructure(tool) {
+  const toolDef =
+    typeof tool === 'string' ? { name: tool } : Object.assign({}, tool);
+  const toolName = `${toolDef.name}Tool`; // Top level CornerstoneTools follow this pattern
+
+  toolDef.toolClass = toolDef.toolClass || cornerstoneTools[toolName];
+
+  return toolDef;
+}
+
+/**
+ * Checks and sets mode for defined tool
+ *
+ * @param {object} tool
+ * @param {HTMLElement} element
+ */
+function _modifyToolsMode(tool, element) {
+  const hasInitialMode = tool.mode && AVAILABLE_TOOL_MODES.includes(tool.mode);
+
+  if (hasInitialMode) {
+    // TODO: We may need to check `tool.props` and the tool class's prototype
+    // to determine the name it registered with cornerstone. `tool.name` is not
+    // reliable.
+    const setToolModeFn = TOOL_MODE_FUNCTIONS[tool.mode];
+    setToolModeFn(element, tool.name, tool.modeOptions || {});
   }
 }
 
