@@ -1,3 +1,5 @@
+# [Deprecated] Use Cornerstone3D Instead https://cornerstonejs.org/
+
 # react-cornerstone-viewport
 
 > Cornerstone medical image viewport component for React
