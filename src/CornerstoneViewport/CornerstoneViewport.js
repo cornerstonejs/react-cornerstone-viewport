@@ -60,6 +60,7 @@ class CornerstoneViewport extends Component {
       PropTypes.string,
       PropTypes.func,
     ]),
+    imageScrollbarComponent: PropTypes.func,
     // Cornerstone Events
     onElementEnabled: PropTypes.func, // Escape hatch
     eventListeners: PropTypes.arrayOf(
@@ -95,6 +96,7 @@ class CornerstoneViewport extends Component {
     isPlaying: false,
     cineFrameRate: 24,
     viewportOverlayComponent: ViewportOverlay,
+    imageScrollbarComponent: ImageScrollbar,
     imageIds: ['no-id://'],
     initialViewport: {},
     // Init
@@ -761,6 +763,7 @@ class CornerstoneViewport extends Component {
   };
 
   render() {
+    const { imageScrollbarComponent: ImageScrollbarComponent } = this.props;
     const isLoading = this.state.isLoading;
     const displayLoadingIndicator = isLoading || this.state.error;
     const scrollbarMax = this.props.imageIds.length - 1;
@@ -800,7 +803,7 @@ class CornerstoneViewport extends Component {
           {this.getOverlay()}
           {this.getOrientationMarkersOverlay()}
         </div>
-        <ImageScrollbar
+        <ImageScrollbarComponent
           onInputCallback={this.imageSliderOnInputCallback}
           max={scrollbarMax}
           height={scrollbarHeight}
