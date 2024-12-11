@@ -42,6 +42,7 @@ module.exports = {
       '@cornerstone-viewport': ENTRY_VIEWPORT,
     },
     fallback: { fs: false, path: false },
+    symlinks: false,
   },
   plugins: [
     // Show build progress
